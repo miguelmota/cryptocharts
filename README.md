@@ -7,23 +7,21 @@
 # Install
 
 ```bash
-go get -u github.com/miguelmota/cryptodash
+go get -u github.com/miguelmota/cryptodash/cryptodash
 ```
 
 # Usage
 
 ```bash
-cryptodash {coin}
+$ cryptodash {coin}
 ```
 
 Example
 
 ```bash
-cryptodash ethereum
+$ cryptodash ethereum
 ```
 
 # License
 
 MIT
-
-
