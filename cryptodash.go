@@ -46,7 +46,7 @@ func Render(coin string) {
 
 	if len(argsWithoutProg) > 0 {
 		coin = argsWithoutProg[0]
-	} else {
+	} else if coin == "" {
 		coin = "bitcoin"
 	}
 
