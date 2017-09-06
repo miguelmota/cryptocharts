@@ -15,13 +15,13 @@ go get -u github.com/miguelmota/cryptodash/cryptodash
 # Usage
 
 ```bash
-$ cryptodash {coin}
+$ cryptodash {coin} [daterange {1d | 7d | 30d | 90d | 1y}]
 ```
 
 Example
 
 ```bash
-$ cryptodash ethereum
+$ cryptodash ethereum 30d
 ```
 
 # License
