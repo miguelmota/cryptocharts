@@ -4,36 +4,22 @@
 
 <img src="./screenshot.png" width="750">
 
+# Install
+
+```bash
+go get -u github.com/miguelmota/cryptodash
+```
+
 # Usage
 
-build:
-
 ```bash
-cd example/
-go build main.go
+cryptodash {coin}
 ```
 
-run:
+Example
 
 ```bash
-./main {coin}
-
-# example
-./main ethereum
-```
-
-running from within a program:
-
-```go
-package main
-
-import (
-  "github.com/miguelmota/cryptodash"
-)
-
-func main() {
-	cryptodash.Render("ethereum")
-}
+cryptodash ethereum
 ```
 
 # License
