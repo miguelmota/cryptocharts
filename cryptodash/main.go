@@ -8,7 +8,6 @@ import (
 
   ui "github.com/gizak/termui"
   coinApi "github.com/miguelmota/go-coinmarketcap"
-  dash "github.com/miguelmota/cryptodash"
   "github.com/dustin/go-humanize"
 )
 
@@ -24,16 +23,9 @@ func Render(coin string) {
   }
   defer ui.Close()
 
-	/*
-  sinps := (func() []float64 {
-    n := 220
-    ps := make([]float64, n)
-    for i := range ps {
-      ps[i] = 1 + math.Sin(float64(i)/5)
-    }
-    return ps
-  })()
-	*/
+	if coin == "" {
+		coin = "bitcoin"
+	}
 
 	var threeMonths int64 = (59 * 60 * 24 * 60)
 	//var oneMonth int64 = (60 * 60 * 24 * 30)
@@ -42,14 +34,6 @@ func Render(coin string) {
 	start := secs - threeMonths
 	//start := secs - oneMonth
 	end := secs
-
-	argsWithoutProg := os.Args[1:]
-
-	if len(argsWithoutProg) > 0 {
-		coin = argsWithoutProg[0]
-	} else if coin == "" {
-		coin = "bitcoin"
-	}
 
   coinInfo, err := coinApi.GetCoinData(coin)
   graphData, err := coinApi.GetCoinGraphData(coin, start, end)
@@ -143,5 +127,12 @@ func Render(coin string) {
 }
 
 func Main() {
-	dash.Render("")
+	coin := ""
+	argsWithoutProg := os.Args[1:]
+
+	if len(argsWithoutProg) > 0 {
+		coin = argsWithoutProg[0]
+	}
+
+	Render(coin)
 }
