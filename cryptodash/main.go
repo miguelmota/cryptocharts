@@ -126,7 +126,7 @@ func Render(coin string) {
 
 }
 
-func Main() {
+func main() {
 	coin := ""
 	argsWithoutProg := os.Args[1:]
 
