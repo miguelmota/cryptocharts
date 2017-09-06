@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	cryptodash.Render()
+	cryptodash.Render("ethereum")
 }

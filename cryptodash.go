@@ -16,7 +16,7 @@ func FloatToString(input_num float64) string {
     return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func Render() {
+func Render(coin string) {
   err := ui.Init()
   if err != nil {
     panic(err)
@@ -42,12 +42,12 @@ func Render() {
 	//start := secs - oneMonth
 	end := secs
 
-	coin := "ethereum"
-
 	argsWithoutProg := os.Args[1:]
 
 	if len(argsWithoutProg) > 0 {
 		coin = argsWithoutProg[0]
+	} else {
+		coin = "bitcoin"
 	}
 
   coinInfo, err := coinApi.GetCoinData(coin)
