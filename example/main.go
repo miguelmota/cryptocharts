@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	CryptoDash()
+	cryptodash.Render()
 }

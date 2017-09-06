@@ -16,7 +16,7 @@ func FloatToString(input_num float64) string {
     return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func CryptoDash() {
+func Render() {
   err := ui.Init()
   if err != nil {
     panic(err)
