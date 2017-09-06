@@ -9,6 +9,7 @@
 build
 
 ```bash
+cd example/
 go build main.go
 ```
 
