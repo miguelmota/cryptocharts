@@ -1,9 +1,9 @@
 package main
 
 import (
-  "os"
   "fmt"
   "time"
+  "os"
   "strconv"
 
   ui "github.com/gizak/termui"
@@ -16,7 +16,7 @@ func FloatToString(input_num float64) string {
     return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func Render(coin string) {
+func Render(coin string, dateRange string) {
   err := ui.Init()
   if err != nil {
     panic(err)
@@ -27,16 +27,34 @@ func Render(coin string) {
     coin = "bitcoin"
   }
 
-  var threeMonths int64 = (59 * 60 * 24 * 60)
-  //var oneMonth int64 = (60 * 60 * 24 * 30)
+  if dateRange == "" {
+    dateRange = "30d"
+  }
+
+  var oneYear int64 = (59 * 60 * 24 * 365)
+  var threeMonths int64 = (59 * 60 * 24 * 90)
+  var oneMonth int64 = (60 * 60 * 24 * 30)
+  var oneWeek int64 = (60 * 60 * 24 * 7)
+  var oneDay int64 = (60 * 60 * 24)
   now := time.Now()
   secs := now.Unix()
-  start := secs - threeMonths
-  //start := secs - oneMonth
+  start := secs - oneMonth
   end := secs
 
-  coinInfo, err := coinApi.GetCoinData(coin)
-  graphData, err := coinApi.GetCoinGraphData(coin, start, end)
+  if dateRange == "1d" {
+    start = secs - oneDay
+  } else if dateRange == "7d" {
+    start = secs - oneWeek
+  } else if dateRange == "30d" {
+    start = secs - oneMonth
+  } else if dateRange == "90d" {
+    start = secs - threeMonths
+  } else if dateRange == "1y" {
+    start = secs - oneYear
+  }
+
+  coinInfo, _ := coinApi.GetCoinData(coin)
+  graphData, _ := coinApi.GetCoinGraphData(coin, start, end)
 
   sinps := (func() []float64 {
     n := len(graphData.PriceUsd)
@@ -63,9 +81,8 @@ func Render(coin string) {
   table1.Height = 5
 
   chartTitle := "Price History"
-  timeframe := "3 Months"
   lc2 := ui.NewLineChart()
-  lc2.BorderLabel = fmt.Sprintf("%s: %s", chartTitle, timeframe)
+  lc2.BorderLabel = fmt.Sprintf("%s: %s", chartTitle, dateRange)
   lc2.Mode = "dot"
   lc2.Data = sinps[4:]
   lc2.Width = 100
@@ -123,16 +140,21 @@ func Render(coin string) {
     ui.StopLoop()
   })
   ui.Loop()
-
 }
 
 func main() {
   coin := ""
+  dateRange := ""
+
   argsWithoutProg := os.Args[1:]
 
   if len(argsWithoutProg) > 0 {
     coin = argsWithoutProg[0]
   }
 
-  Render(coin)
+  if len(argsWithoutProg) > 1 {
+    dateRange = argsWithoutProg[1]
+  }
+
+  Render(coin, dateRange)
 }
