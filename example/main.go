@@ -1,7 +1,7 @@
 package main
 
 import (
-  "github.com/miguelmota/crypto-dash"
+  "github.com/miguelmota/cryptodash"
 )
 
 func main() {

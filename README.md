@@ -1,4 +1,4 @@
-# crypto-dash
+# cryptodash
 
 > Cryptocurrency information and charts displayed in a dashboard from your terminal.
 
@@ -28,7 +28,7 @@ running from within a program:
 package main
 
 import (
-  "github.com/miguelmota/crypto-dash"
+  "github.com/miguelmota/cryptodash"
 )
 
 func main() {
