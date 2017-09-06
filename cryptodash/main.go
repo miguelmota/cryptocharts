@@ -81,7 +81,7 @@ func Render(coin string) {
   par0.Width = 20
   par0.Y = 1
   par0.TextFgColor = ui.ColorGreen
-  par0.BorderLabel = "1h Δ"
+  par0.BorderLabel = "1h ▲"
   par0.BorderFg = ui.ColorGreen
 
   par1 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange24h))
@@ -89,7 +89,7 @@ func Render(coin string) {
   par1.Width = 20
   par1.Y = 1
   par1.TextFgColor = ui.ColorGreen
-  par1.BorderLabel = "24h Δ"
+  par1.BorderLabel = "24h ▲"
   par1.BorderFg = ui.ColorGreen
 
   par2 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange7d))
@@ -97,7 +97,7 @@ func Render(coin string) {
   par2.Width = 20
   par2.Y = 1
   par2.TextFgColor = ui.ColorGreen
-  par2.BorderLabel = "7d Δ"
+  par2.BorderLabel = "7d ▲"
   par2.BorderFg = ui.ColorGreen
 
   ui.Body.AddRows(
