@@ -151,7 +151,7 @@ func Render(coin string, dateRange string) {
 	par4.Width = 20
 	par4.Y = 1
 	par4.TextFgColor = ui.ColorWhite
-	par4.BorderLabel = "Price"
+	par4.BorderLabel = "Price (USD)"
 	par4.BorderFg = ui.ColorGreen
 
 	par5 := ui.NewPar(fmt.Sprintf("%s", coinInfo.Symbol))
