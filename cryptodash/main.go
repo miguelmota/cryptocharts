@@ -17,12 +17,6 @@ func FloatToString(input_num float64) string {
 }
 
 func Render(coin string, dateRange string) {
-  err := ui.Init()
-  if err != nil {
-    panic(err)
-  }
-  defer ui.Close()
-
   if coin == "" {
     coin = "bitcoin"
   }
@@ -117,6 +111,10 @@ func Render(coin string, dateRange string) {
   par2.BorderLabel = "7d ▲"
   par2.BorderFg = ui.ColorGreen
 
+  // reset
+  ui.Body.Rows = ui.Body.Rows[:0]
+
+  // add grid rows and columns
   ui.Body.AddRows(
     ui.NewRow(
       ui.NewCol(12, 0, table1),
@@ -134,12 +132,8 @@ func Render(coin string, dateRange string) {
   // calculate layout
   ui.Body.Align()
 
+  // render to terminal
   ui.Render(ui.Body)
-
-  ui.Handle("/sys/kbd/q", func(ui.Event) {
-    ui.StopLoop()
-  })
-  ui.Loop()
 }
 
 func main() {
@@ -156,5 +150,35 @@ func main() {
     dateRange = argsWithoutProg[1]
   }
 
+  err := ui.Init()
+  if err != nil {
+    panic(err)
+  }
+  defer ui.Close()
+
   Render(coin, dateRange)
+
+  // re-adjust grid on window resize
+  ui.Handle("/sys/wnd/resize", func(ui.Event) {
+    ui.Body.Width = ui.TermWidth()
+    ui.Body.Align()
+    ui.Render(ui.Body)
+  })
+
+  // quit on Ctrl-c
+  ui.Handle("/sys/kbd/C-c", func(ui.Event) {
+    ui.StopLoop()
+  })
+
+  // refresh every minute
+  ticker := time.NewTicker(60 * time.Second)
+
+  // routine
+  go func() {
+    for range ticker.C {
+      Render(coin, dateRange)
+    }
+  }()
+
+  ui.Loop()
 }
