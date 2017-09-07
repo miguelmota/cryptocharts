@@ -173,7 +173,7 @@ func Render(coin string, dateRange string) {
   par7.BorderLabel = "Market Cap (USD)"
   par7.BorderFg = ui.ColorGreen
 
-  par8 := ui.NewPar(humanize.Commaf(coinInfo.Usd24hVolume))
+  par8 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.Usd24hVolume)))
   par8.Height = 3
   par8.Width = 20
   par8.Y = 1
@@ -181,7 +181,7 @@ func Render(coin string, dateRange string) {
   par8.BorderLabel = "24h Volume"
   par8.BorderFg = ui.ColorGreen
 
-  par9 := ui.NewPar(humanize.Commaf(coinInfo.AvailableSupply))
+  par9 := ui.NewPar(fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.AvailableSupply), coinInfo.Symbol))
   par9.Height = 3
   par9.Width = 20
   par9.Y = 1
@@ -189,7 +189,7 @@ func Render(coin string, dateRange string) {
   par9.BorderLabel = "Available Supply"
   par9.BorderFg = ui.ColorGreen
 
-  par10 := ui.NewPar(humanize.Commaf(coinInfo.TotalSupply))
+  par10 := ui.NewPar(fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.TotalSupply), coinInfo.Symbol))
   par10.Height = 3
   par10.Width = 20
   par10.Y = 1
