@@ -22,3 +22,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+cryptodash/main
+!cryptodash/main.go

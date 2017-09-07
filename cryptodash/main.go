@@ -26,28 +26,36 @@ func Render(coin string, dateRange string) {
   }
 
   var (
-    oneDay int64 = 60 * 60 * 24
-    oneWeek int64 = oneDay * 7
+    oneMinute int64 = 60
+    oneHour int64 = oneMinute * 60
+    oneDay int64 = oneHour * 24
     oneMonth int64 = oneDay * 30
-    threeMonths int64 = oneDay * 90
     oneYear int64 = oneDay * 365
   )
 
   now := time.Now()
   secs := now.Unix()
-  start := secs - oneMonth
+  start := secs - oneDay
   end := secs
 
-  if dateRange == "1d" {
-    start = secs - oneDay
-  } else if dateRange == "7d" {
-    start = secs - oneWeek
-  } else if dateRange == "30d" {
-    start = secs - oneMonth
-  } else if dateRange == "90d" {
-    start = secs - threeMonths
-  } else if dateRange == "1y" {
-    start = secs - oneYear
+  dateNumber, err := strconv.ParseInt(dateRange[0:len(dateRange)-1], 10, 64)
+
+  if err != nil {
+    panic(err)
+  }
+
+  dateType := dateRange[len(dateRange)-1:]
+
+  if dateType == "n" {
+    start = secs - (oneMinute * dateNumber)
+  } else if dateType == "h" {
+    start = secs - (oneHour * dateNumber)
+  } else if dateType == "d" {
+    start = secs - (oneDay * dateNumber)
+  } else if dateType == "m" {
+    start = secs - (oneMonth * dateNumber)
+  } else if dateRange == "y" {
+    start = secs - (oneYear * dateNumber)
   }
 
   coinInfo, err := coinApi.GetCoinData(coin)
@@ -189,15 +197,13 @@ func Render(coin string, dateRange string) {
   par10.BorderLabel = "Total Supply"
   par10.BorderFg = ui.ColorGreen
 
-  /*
   unix, err := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
 
   if err != nil {
       panic(err)
   }
-  */
 
-  par11 := ui.NewPar(time.Unix(1504756709, 0).Format("15:04:05 Jan 02"))
+  par11 := ui.NewPar(time.Unix(unix, 0).Format("15:04:05 Jan 02"))
   par11.Height = 3
   par11.Width = 20
   par11.Y = 1
