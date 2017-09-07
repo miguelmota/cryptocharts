@@ -85,7 +85,7 @@ func Render(coin string, dateRange string) {
   lc1.LineColor = ui.ColorWhite | ui.AttrBold
   lc1.BorderFg = ui.ColorGreen
 
-  par0 := ui.NewPar(fmt.Sprintf("%f %%", coinInfo.PercentChange1h))
+  par0 := ui.NewPar(fmt.Sprintf("%.2f%%", coinInfo.PercentChange1h))
   par0.Height = 3
   par0.Width = 20
   par0.Y = 1
@@ -99,7 +99,7 @@ func Render(coin string, dateRange string) {
     par0.BorderLabelFg = ui.ColorRed
   }
 
-  par1 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange24h))
+  par1 := ui.NewPar(fmt.Sprintf("%.2f%%", coinInfo.PercentChange24h))
   par1.Height = 3
   par1.Width = 20
   par1.Y = 1
@@ -112,7 +112,7 @@ func Render(coin string, dateRange string) {
     par1.BorderLabelFg = ui.ColorRed
   }
 
-  par2 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange7d))
+  par2 := ui.NewPar(fmt.Sprintf("%.2f%%", coinInfo.PercentChange7d))
   par2.Height = 3
   par2.Width = 20
   par2.Y = 1
