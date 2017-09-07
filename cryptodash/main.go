@@ -94,8 +94,8 @@ func Render(coin string, dateRange string) {
 	lc1.Height = 16
 	lc1.X = 0
 	lc1.Y = 7
-	lc1.AxesColor = ui.ColorWhite
-	lc1.LineColor = ui.ColorWhite | ui.AttrBold
+	lc1.AxesColor = ui.ColorGreen
+	lc1.LineColor = ui.ColorGreen | ui.AttrBold
 	lc1.BorderFg = ui.ColorGreen
 
 	par0 := ui.NewPar(fmt.Sprintf("%.2f%%", coinInfo.PercentChange1h))
