@@ -5,6 +5,7 @@ import (
   "time"
   "os"
   "strconv"
+  "strings"
 
   ui "github.com/gizak/termui"
   coinApi "github.com/miguelmota/go-coinmarketcap"
@@ -42,7 +43,7 @@ func Render(coin string, dateRange string) {
   dateNumber, err := strconv.ParseInt(dateRange[0:len(dateRange)-1], 10, 64)
 
   if err != nil {
-    panic(err)
+    dateNumber = 30
   }
 
   dateType := dateRange[len(dateRange)-1:]
@@ -57,8 +58,10 @@ func Render(coin string, dateRange string) {
     start = secs - (oneWeek * dateNumber)
   } else if dateType == "m" {
     start = secs - (oneMonth * dateNumber)
-  } else if dateRange == "y" {
+  } else if dateType == "y" {
     start = secs - (oneYear * dateNumber)
+  } else {
+    dateType = "d"
   }
 
   coinInfo, err := coinApi.GetCoinData(coin)
@@ -84,9 +87,8 @@ func Render(coin string, dateRange string) {
     return ps
   })()
 
-  chartTitle := "Price History"
   lc1 := ui.NewLineChart()
-  lc1.BorderLabel = fmt.Sprintf("%s: %s", chartTitle, dateRange)
+  lc1.BorderLabel = fmt.Sprintf("%s %s: %d%s", coinInfo.Symbol, "Price History", dateNumber, strings.ToUpper(dateType))
   lc1.Data = sinps
   lc1.Width = 100
   lc1.Height = 16
@@ -101,7 +103,7 @@ func Render(coin string, dateRange string) {
   par0.Width = 20
   par0.Y = 1
   par0.TextFgColor = ui.ColorGreen
-  par0.BorderLabel = "1h ▲"
+  par0.BorderLabel = "1H ▲"
   par0.BorderLabelFg = ui.ColorGreen
   par0.BorderFg = ui.ColorGreen
   if coinInfo.PercentChange1h < 0 {
@@ -115,7 +117,7 @@ func Render(coin string, dateRange string) {
   par1.Width = 20
   par1.Y = 1
   par1.TextFgColor = ui.ColorGreen
-  par1.BorderLabel = "24h ▲"
+  par1.BorderLabel = "24H ▲"
   par1.BorderFg = ui.ColorGreen
   if coinInfo.PercentChange24h < 0 {
     par1.TextFgColor = ui.ColorRed
@@ -128,7 +130,7 @@ func Render(coin string, dateRange string) {
   par2.Width = 20
   par2.Y = 1
   par2.TextFgColor = ui.ColorGreen
-  par2.BorderLabel = "7d ▲"
+  par2.BorderLabel = "7D ▲"
   par2.BorderFg = ui.ColorGreen
   if coinInfo.PercentChange7d < 0 {
     par2.TextFgColor = ui.ColorRed
