@@ -15,14 +15,20 @@ go get -u github.com/miguelmota/cryptodash/cryptodash
 # Usage
 
 ```bash
-$ cryptodash {coin} [daterange {1d | 7d | 30d | 90d | 1y}]
+$ cryptodash {coin} [chart date range {1d | 7d | 30d | 90d | 1y}]
 ```
 
-Example
+Example for getting latest ethereum info, and chart data for last 30 days.
 
 ```bash
 $ cryptodash ethereum 30d
 ```
+
+## Notes
+
+- Data gets polled once every minute.
+
+- Data is from [Coin Market Cap](https://coinmarketcap.com/)
 
 # License
 

@@ -22,14 +22,17 @@ func Render(coin string, dateRange string) {
   }
 
   if dateRange == "" {
-    dateRange = "30d"
+    dateRange = "7d"
   }
 
-  var oneYear int64 = (59 * 60 * 24 * 365)
-  var threeMonths int64 = (59 * 60 * 24 * 90)
-  var oneMonth int64 = (60 * 60 * 24 * 30)
-  var oneWeek int64 = (60 * 60 * 24 * 7)
-  var oneDay int64 = (60 * 60 * 24)
+  var (
+    oneDay int64 = 60 * 60 * 24
+    oneWeek int64 = oneDay * 7
+    oneMonth int64 = oneDay * 30
+    threeMonths int64 = oneDay * 90
+    oneYear int64 = oneDay * 365
+  )
+
   now := time.Now()
   secs := now.Unix()
   start := secs - oneMonth
@@ -47,8 +50,19 @@ func Render(coin string, dateRange string) {
     start = secs - oneYear
   }
 
-  coinInfo, _ := coinApi.GetCoinData(coin)
-  graphData, _ := coinApi.GetCoinGraphData(coin, start, end)
+  coinInfo, err := coinApi.GetCoinData(coin)
+
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
+
+  graphData, err := coinApi.GetCoinGraphData(coin, start, end)
+
+  if err != nil {
+    fmt.Println(err)
+    return
+  }
 
   sinps := (func() []float64 {
     n := len(graphData.PriceUsd)
@@ -59,33 +73,17 @@ func Render(coin string, dateRange string) {
     return ps
   })()
 
-  rows1 := [][]string{
-    []string{"Name", "Symbol", "Price", "Market Cap", "24h Volume", "Available Supply", "Total Supply"},
-    []string{coinInfo.Name, coinInfo.Symbol, humanize.Commaf(coinInfo.PriceUsd), humanize.Commaf(coinInfo.MarketCapUsd), humanize.Commaf(coinInfo.Usd24hVolume), humanize.Commaf(coinInfo.AvailableSupply), humanize.Commaf(coinInfo.TotalSupply)},
-  }
-
-  table1 := ui.NewTable()
-  table1.Rows = rows1
-  table1.FgColor = ui.ColorGreen
-  table1.BgColor = ui.ColorDefault
-  table1.BorderFg = ui.ColorGreen
-  table1.Y = 0
-  table1.X = 0
-  table1.Width = 100
-  table1.Height = 5
-
   chartTitle := "Price History"
-  lc2 := ui.NewLineChart()
-  lc2.BorderLabel = fmt.Sprintf("%s: %s", chartTitle, dateRange)
-  lc2.Mode = "dot"
-  lc2.Data = sinps[4:]
-  lc2.Width = 100
-  lc2.Height = 16
-  lc2.X = 0
-  lc2.Y = 7
-  lc2.AxesColor = ui.ColorGreen
-  lc2.LineColor = ui.ColorGreen | ui.AttrBold
-  lc2.BorderFg = ui.ColorGreen
+  lc1 := ui.NewLineChart()
+  lc1.BorderLabel = fmt.Sprintf("%s: %s", chartTitle, dateRange)
+  lc1.Data = sinps
+  lc1.Width = 100
+  lc1.Height = 16
+  lc1.X = 0
+  lc1.Y = 7
+  lc1.AxesColor = ui.ColorWhite
+  lc1.LineColor = ui.ColorWhite | ui.AttrBold
+  lc1.BorderFg = ui.ColorGreen
 
   par0 := ui.NewPar(fmt.Sprintf("%f %%", coinInfo.PercentChange1h))
   par0.Height = 3
@@ -93,7 +91,13 @@ func Render(coin string, dateRange string) {
   par0.Y = 1
   par0.TextFgColor = ui.ColorGreen
   par0.BorderLabel = "1h ▲"
+  par0.BorderLabelFg = ui.ColorGreen
   par0.BorderFg = ui.ColorGreen
+  if coinInfo.PercentChange1h < 0 {
+    par0.TextFgColor = ui.ColorRed
+    par0.BorderFg = ui.ColorRed
+    par0.BorderLabelFg = ui.ColorRed
+  }
 
   par1 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange24h))
   par1.Height = 3
@@ -102,6 +106,11 @@ func Render(coin string, dateRange string) {
   par1.TextFgColor = ui.ColorGreen
   par1.BorderLabel = "24h ▲"
   par1.BorderFg = ui.ColorGreen
+  if coinInfo.PercentChange24h < 0 {
+    par1.TextFgColor = ui.ColorRed
+    par1.BorderFg = ui.ColorRed
+    par1.BorderLabelFg = ui.ColorRed
+  }
 
   par2 := ui.NewPar(fmt.Sprintf("%f%%", coinInfo.PercentChange7d))
   par2.Height = 3
@@ -110,6 +119,91 @@ func Render(coin string, dateRange string) {
   par2.TextFgColor = ui.ColorGreen
   par2.BorderLabel = "7d ▲"
   par2.BorderFg = ui.ColorGreen
+  if coinInfo.PercentChange7d < 0 {
+    par2.TextFgColor = ui.ColorRed
+    par2.BorderFg = ui.ColorRed
+    par2.BorderLabelFg = ui.ColorRed
+  }
+
+  par3 := ui.NewPar(fmt.Sprintf("%s", coinInfo.Name))
+  par3.Height = 3
+  par3.Width = 20
+  par3.Y = 1
+  par3.TextFgColor = ui.ColorWhite
+  par3.BorderLabel = "Name"
+  par3.BorderFg = ui.ColorGreen
+
+  par4 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.PriceUsd)))
+  par4.Height = 3
+  par4.Width = 20
+  par4.Y = 1
+  par4.TextFgColor = ui.ColorWhite
+  par4.BorderLabel = "Price (USD)"
+  par4.BorderFg = ui.ColorGreen
+
+  par5 := ui.NewPar(fmt.Sprintf("%s", coinInfo.Symbol))
+  par5.Height = 3
+  par5.Width = 20
+  par5.Y = 1
+  par5.TextFgColor = ui.ColorWhite
+  par5.BorderLabel = "Symbol"
+  par5.BorderFg = ui.ColorGreen
+
+  par6 := ui.NewPar(humanize.Comma(int64(coinInfo.Rank)))
+  par6.Height = 3
+  par6.Width = 20
+  par6.Y = 1
+  par6.TextFgColor = ui.ColorWhite
+  par6.BorderLabel = "Rank"
+  par6.BorderFg = ui.ColorGreen
+
+  par7 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.MarketCapUsd)))
+  par7.Height = 3
+  par7.Width = 20
+  par7.Y = 1
+  par7.TextFgColor = ui.ColorWhite
+  par7.BorderLabel = "Market Cap (USD)"
+  par7.BorderFg = ui.ColorGreen
+
+  par8 := ui.NewPar(humanize.Commaf(coinInfo.Usd24hVolume))
+  par8.Height = 3
+  par8.Width = 20
+  par8.Y = 1
+  par8.TextFgColor = ui.ColorWhite
+  par8.BorderLabel = "24h Volume"
+  par8.BorderFg = ui.ColorGreen
+
+  par9 := ui.NewPar(humanize.Commaf(coinInfo.AvailableSupply))
+  par9.Height = 3
+  par9.Width = 20
+  par9.Y = 1
+  par9.TextFgColor = ui.ColorWhite
+  par9.BorderLabel = "Available Supply"
+  par9.BorderFg = ui.ColorGreen
+
+  par10 := ui.NewPar(humanize.Commaf(coinInfo.TotalSupply))
+  par10.Height = 3
+  par10.Width = 20
+  par10.Y = 1
+  par10.TextFgColor = ui.ColorWhite
+  par10.BorderLabel = "Total Supply"
+  par10.BorderFg = ui.ColorGreen
+
+  /*
+  unix, err := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
+
+  if err != nil {
+      panic(err)
+  }
+  */
+
+  par11 := ui.NewPar(time.Unix(1504756709, 0).Format("15:04:05 Jan 02"))
+  par11.Height = 3
+  par11.Width = 20
+  par11.Y = 1
+  par11.TextFgColor = ui.ColorWhite
+  par11.BorderLabel = "Last Updated"
+  par11.BorderFg = ui.ColorGreen
 
   // reset
   ui.Body.Rows = ui.Body.Rows[:0]
@@ -117,15 +211,23 @@ func Render(coin string, dateRange string) {
   // add grid rows and columns
   ui.Body.AddRows(
     ui.NewRow(
-      ui.NewCol(12, 0, table1),
+      ui.NewCol(2, 0, par3),
+      ui.NewCol(2, 0, par5),
+      ui.NewCol(2, 0, par4),
+      ui.NewCol(2, 0, par0),
+      ui.NewCol(2, 0, par1),
+      ui.NewCol(2, 0, par2),
     ),
     ui.NewRow(
-      ui.NewCol(4, 0, par0),
-      ui.NewCol(4, 0, par1),
-      ui.NewCol(4, 0, par2),
+      ui.NewCol(2, 0, par6),
+      ui.NewCol(2, 0, par7),
+      ui.NewCol(2, 0, par8),
+      ui.NewCol(2, 0, par9),
+      ui.NewCol(2, 0, par10),
+      ui.NewCol(2, 0, par11),
     ),
     ui.NewRow(
-      ui.NewCol(12, 0, lc2),
+      ui.NewCol(12, 0, lc1),
     ),
   )
 
