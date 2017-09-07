@@ -29,6 +29,7 @@ func Render(coin string, dateRange string) {
     oneMinute int64 = 60
     oneHour int64 = oneMinute * 60
     oneDay int64 = oneHour * 24
+    oneWeek int64 = oneDay * 7
     oneMonth int64 = oneDay * 30
     oneYear int64 = oneDay * 365
   )
@@ -52,6 +53,8 @@ func Render(coin string, dateRange string) {
     start = secs - (oneHour * dateNumber)
   } else if dateType == "d" {
     start = secs - (oneDay * dateNumber)
+  } else if dateType == "w" {
+    start = secs - (oneWeek * dateNumber)
   } else if dateType == "m" {
     start = secs - (oneMonth * dateNumber)
   } else if dateRange == "y" {
