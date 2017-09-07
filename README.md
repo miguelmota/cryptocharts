@@ -24,7 +24,7 @@ Here's an example of getting latest [Ethereum](https://www.ethereum.org/) info, 
 $ cryptodash ethereum 30d
 ```
 
-(result is screenshot above)
+(output is screenshot above)
 
 ## Notes
 
