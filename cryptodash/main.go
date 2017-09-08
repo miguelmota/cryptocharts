@@ -17,13 +17,33 @@ func FloatToString(input_num float64) string {
 	return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func Render(coin string, dateRange string) {
+func Render(coin string, dateRange string, color string) {
 	if coin == "" {
 		coin = "bitcoin"
 	}
 
 	if dateRange == "" {
 		dateRange = "7d"
+	}
+
+	if color == "" {
+		color = "green"
+	}
+
+	primaryColor := ui.ColorGreen
+
+	if color == "green" {
+		primaryColor = ui.ColorGreen
+	} else if color == "cyan" || color == "blue" {
+		primaryColor = ui.ColorCyan
+	} else if color == "magenta" || color == "pink" {
+		primaryColor = ui.ColorMagenta
+	} else if color == "white" {
+		primaryColor = ui.ColorWhite
+	} else if color == "red" {
+		primaryColor = ui.ColorRed
+	} else if color == "yellow" {
+		primaryColor = ui.ColorYellow
 	}
 
 	var (
@@ -88,15 +108,16 @@ func Render(coin string, dateRange string) {
 	})()
 
 	lc1 := ui.NewLineChart()
-	lc1.BorderLabel = fmt.Sprintf("%s %s: %d%s", coinInfo.Symbol, "Price History", dateNumber, strings.ToUpper(dateType))
 	lc1.Data = sinps
 	lc1.Width = 100
 	lc1.Height = 16
 	lc1.X = 0
 	lc1.Y = 7
-	lc1.AxesColor = ui.ColorGreen
-	lc1.LineColor = ui.ColorGreen | ui.AttrBold
-	lc1.BorderFg = ui.ColorGreen
+	lc1.AxesColor = primaryColor
+	lc1.LineColor = primaryColor | ui.AttrBold
+	lc1.BorderFg = primaryColor
+	lc1.BorderLabel = fmt.Sprintf("%s %s: %d%s", coinInfo.Symbol, "Price History", dateNumber, strings.ToUpper(dateType))
+	lc1.BorderLabelFg = primaryColor
 
 	par0 := ui.NewPar(fmt.Sprintf("%.2f%%", coinInfo.PercentChange1h))
 	par0.Height = 3
@@ -144,7 +165,8 @@ func Render(coin string, dateRange string) {
 	par3.Y = 1
 	par3.TextFgColor = ui.ColorWhite
 	par3.BorderLabel = "Name"
-	par3.BorderFg = ui.ColorGreen
+	par3.BorderLabelFg = primaryColor
+	par3.BorderFg = primaryColor
 
 	par4 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.PriceUsd)))
 	par4.Height = 3
@@ -152,7 +174,8 @@ func Render(coin string, dateRange string) {
 	par4.Y = 1
 	par4.TextFgColor = ui.ColorWhite
 	par4.BorderLabel = "Price (USD)"
-	par4.BorderFg = ui.ColorGreen
+	par4.BorderLabelFg = primaryColor
+	par4.BorderFg = primaryColor
 
 	par5 := ui.NewPar(fmt.Sprintf("%s", coinInfo.Symbol))
 	par5.Height = 3
@@ -160,7 +183,8 @@ func Render(coin string, dateRange string) {
 	par5.Y = 1
 	par5.TextFgColor = ui.ColorWhite
 	par5.BorderLabel = "Symbol"
-	par5.BorderFg = ui.ColorGreen
+	par5.BorderLabelFg = primaryColor
+	par5.BorderFg = primaryColor
 
 	par6 := ui.NewPar(humanize.Comma(int64(coinInfo.Rank)))
 	par6.Height = 3
@@ -168,7 +192,8 @@ func Render(coin string, dateRange string) {
 	par6.Y = 1
 	par6.TextFgColor = ui.ColorWhite
 	par6.BorderLabel = "Rank"
-	par6.BorderFg = ui.ColorGreen
+	par6.BorderLabelFg = primaryColor
+	par6.BorderFg = primaryColor
 
 	par7 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.MarketCapUsd)))
 	par7.Height = 3
@@ -176,7 +201,8 @@ func Render(coin string, dateRange string) {
 	par7.Y = 1
 	par7.TextFgColor = ui.ColorWhite
 	par7.BorderLabel = "Market Cap"
-	par7.BorderFg = ui.ColorGreen
+	par7.BorderLabelFg = primaryColor
+	par7.BorderFg = primaryColor
 
 	par8 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(coinInfo.Usd24hVolume)))
 	par8.Height = 3
@@ -184,7 +210,8 @@ func Render(coin string, dateRange string) {
 	par8.Y = 1
 	par8.TextFgColor = ui.ColorWhite
 	par8.BorderLabel = "Volume (24H)"
-	par8.BorderFg = ui.ColorGreen
+	par8.BorderLabelFg = primaryColor
+	par8.BorderFg = primaryColor
 
 	par9 := ui.NewPar(fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.AvailableSupply), coinInfo.Symbol))
 	par9.Height = 3
@@ -192,7 +219,8 @@ func Render(coin string, dateRange string) {
 	par9.Y = 1
 	par9.TextFgColor = ui.ColorWhite
 	par9.BorderLabel = "Available Supply"
-	par9.BorderFg = ui.ColorGreen
+	par9.BorderLabelFg = primaryColor
+	par9.BorderFg = primaryColor
 
 	par10 := ui.NewPar(fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.TotalSupply), coinInfo.Symbol))
 	par10.Height = 3
@@ -200,7 +228,8 @@ func Render(coin string, dateRange string) {
 	par10.Y = 1
 	par10.TextFgColor = ui.ColorWhite
 	par10.BorderLabel = "Total Supply"
-	par10.BorderFg = ui.ColorGreen
+	par10.BorderLabelFg = primaryColor
+	par10.BorderFg = primaryColor
 
 	unix, err := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
 
@@ -214,7 +243,8 @@ func Render(coin string, dateRange string) {
 	par11.Y = 1
 	par11.TextFgColor = ui.ColorWhite
 	par11.BorderLabel = "Last Updated"
-	par11.BorderFg = ui.ColorGreen
+	par11.BorderLabelFg = primaryColor
+	par11.BorderFg = primaryColor
 
 	// reset
 	ui.Body.Rows = ui.Body.Rows[:0]
@@ -252,6 +282,7 @@ func Render(coin string, dateRange string) {
 func main() {
 	coin := ""
 	dateRange := ""
+	color := ""
 
 	argsWithoutProg := os.Args[1:]
 
@@ -263,13 +294,17 @@ func main() {
 		dateRange = argsWithoutProg[1]
 	}
 
+	if len(argsWithoutProg) > 2 {
+		color = argsWithoutProg[2]
+	}
+
 	err := ui.Init()
 	if err != nil {
 		panic(err)
 	}
 	defer ui.Close()
 
-	Render(coin, dateRange)
+	Render(coin, dateRange, color)
 
 	// re-adjust grid on window resize
 	ui.Handle("/sys/wnd/resize", func(ui.Event) {
@@ -289,7 +324,7 @@ func main() {
 	// routine
 	go func() {
 		for range ticker.C {
-			Render(coin, dateRange)
+			Render(coin, dateRange, color)
 		}
 	}()
 
