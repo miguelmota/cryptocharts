@@ -279,6 +279,8 @@ func Render(coin string, dateRange string, color string) error {
 
 	// render to terminal
 	ui.Render(ui.Body)
+
+	return nil
 }
 
 func main() {
@@ -306,7 +308,7 @@ func main() {
 	}
 	defer ui.Close()
 
-	err := Render(coin, dateRange, color)
+	err = Render(coin, dateRange, color)
 
 	if err != nil {
 		panic(err)
