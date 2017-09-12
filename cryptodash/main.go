@@ -63,7 +63,6 @@ func Render(coin string, dateRange string, color string) error {
 	dateNumber, err := strconv.ParseInt(dateRange[0:len(dateRange)-1], 10, 64)
 
 	if err != nil {
-		fmt.Println(err)
 		dateNumber = 30
 	}
 
@@ -88,14 +87,12 @@ func Render(coin string, dateRange string, color string) error {
 	coinInfo, err := coinApi.GetCoinData(coin)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
 	graphData, err := coinApi.GetCoinGraphData(coin, start, end)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
@@ -235,7 +232,6 @@ func Render(coin string, dateRange string, color string) error {
 	unix, err := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
