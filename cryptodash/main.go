@@ -17,7 +17,7 @@ func FloatToString(input_num float64) string {
 	return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func Render(coin string, dateRange string, color string) {
+func Render(coin string, dateRange string, color string) error {
 	if coin == "" {
 		coin = "bitcoin"
 	}
@@ -306,7 +306,11 @@ func main() {
 	}
 	defer ui.Close()
 
-	Render(coin, dateRange, color)
+	err := Render(coin, dateRange, color)
+
+	if err != nil {
+		panic(err)
+	}
 
 	// re-adjust grid on window resize
 	ui.Handle("/sys/wnd/resize", func(ui.Event) {
