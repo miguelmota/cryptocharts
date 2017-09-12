@@ -89,14 +89,14 @@ func Render(coin string, dateRange string, color string) {
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	graphData, err := coinApi.GetCoinGraphData(coin, start, end)
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	sinps := (func() []float64 {
@@ -236,7 +236,7 @@ func Render(coin string, dateRange string, color string) {
 
 	if err != nil {
 		fmt.Println(err)
-		return
+		return err
 	}
 
 	par11 := ui.NewPar(time.Unix(unix, 0).Format("15:04:05 Jan 02"))
@@ -325,8 +325,12 @@ func main() {
 
 	// routine
 	go func() {
+	RESTART:
 		for range ticker.C {
-			Render(coin, dateRange, color)
+			err := Render(coin, dateRange, color)
+			if err != nil {
+				goto RESTART
+			}
 		}
 	}()
 
