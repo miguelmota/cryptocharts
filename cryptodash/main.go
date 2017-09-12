@@ -63,6 +63,7 @@ func Render(coin string, dateRange string, color string) {
 	dateNumber, err := strconv.ParseInt(dateRange[0:len(dateRange)-1], 10, 64)
 
 	if err != nil {
+		fmt.Println(err)
 		dateNumber = 30
 	}
 
@@ -234,7 +235,8 @@ func Render(coin string, dateRange string, color string) {
 	unix, err := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 
 	par11 := ui.NewPar(time.Unix(unix, 0).Format("15:04:05 Jan 02"))
