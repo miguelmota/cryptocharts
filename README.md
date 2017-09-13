@@ -26,11 +26,20 @@ $ cryptodash ethereum 30d
 
 (output is screenshot above)
 
-## Notes
+## FAQ
 
-- Data gets polled once every minute.
+- Q: Where is the data from?
 
-- Data is from [Coin Market Cap](https://coinmarketcap.com/)
+  - A: The data is from [Coin Market Cap](https://coinmarketcap.com/).
+
+- Q: What coins does this support?
+
+  - A: This supports any coin listed on [Coin Market Cap](https://coinmarketcap.com/).
+
+- Q: How often is the data polled?
+
+  - A: Data gets polled once every minute.
+
 
 # License
 
