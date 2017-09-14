@@ -41,7 +41,7 @@ Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 $ cryptodash -table -color green
 ```
 
-<img src="./screenshot_table.png" width="750">
+<img src="./screenshot_table.png" width="850">
 
 ## FAQ
 
