@@ -53,7 +53,7 @@ $ cryptodash -table -color green
 
 <img src="./screenshot_table.png" width="850">
 
-## FAQ
+# FAQ
 
 - Q: Where is the data from?
 
