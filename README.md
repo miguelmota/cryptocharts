@@ -24,7 +24,7 @@ $ cryptodash -help
   -date string
         Chart range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y (default "7d")
   -table
-        Show of top cryptocurrencies
+        Show the top 50 cryptocurrencies in a table.
 ```
 
 ## Examples
