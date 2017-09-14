@@ -27,6 +27,8 @@ $ cryptodash -help
         Show of top cryptocurrencies
 ```
 
+## Examples
+
 Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
 
 ```bash
