@@ -67,6 +67,10 @@ $ cryptodash -table -color green
 
   - A: Data gets polled once every minute.
 
+- Q: How can I get multiple dashboards at once?
+
+  - A: Use a window multiplexer, such as [tmux](https://tmux.github.io/) or [screen](https://www.gnu.org/software/screen/).
+
 
 # License
 
