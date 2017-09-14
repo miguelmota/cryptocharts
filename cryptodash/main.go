@@ -1,12 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/bradfitz/slice"
 	"github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
 	coinApi "github.com/miguelmota/go-coinmarketcap"
@@ -17,15 +18,7 @@ func FloatToString(input_num float64) string {
 	return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
-func Render(coin string, dateRange string, color string) error {
-	if coin == "" {
-		coin = "bitcoin"
-	}
-
-	if dateRange == "" {
-		dateRange = "7d"
-	}
-
+func getColor(color string) ui.Attribute {
 	if color == "" {
 		color = "green"
 	}
@@ -36,15 +29,29 @@ func Render(coin string, dateRange string, color string) error {
 		primaryColor = ui.ColorGreen
 	} else if color == "cyan" || color == "blue" {
 		primaryColor = ui.ColorCyan
-	} else if color == "magenta" || color == "pink" {
+	} else if color == "magenta" || color == "pink" || color == "purple" {
 		primaryColor = ui.ColorMagenta
 	} else if color == "white" {
 		primaryColor = ui.ColorWhite
 	} else if color == "red" {
 		primaryColor = ui.ColorRed
-	} else if color == "yellow" {
+	} else if color == "yellow" || color == "orange" {
 		primaryColor = ui.ColorYellow
 	}
+
+	return primaryColor
+}
+
+func RenderChartDash(coin string, dateRange string, color string) error {
+	if coin == "" {
+		coin = "bitcoin"
+	}
+
+	if dateRange == "" {
+		dateRange = "7d"
+	}
+
+	primaryColor := getColor(color)
 
 	var (
 		oneMinute int64 = 60
@@ -216,7 +223,7 @@ func Render(coin string, dateRange string, color string) error {
 	par9.Width = 20
 	par9.Y = 1
 	par9.TextFgColor = ui.ColorWhite
-	par9.BorderLabel = "Available Supply"
+	par9.BorderLabel = "Circulating Supply"
 	par9.BorderLabelFg = primaryColor
 	par9.BorderFg = primaryColor
 
@@ -279,24 +286,83 @@ func Render(coin string, dateRange string, color string) error {
 	return nil
 }
 
+func RenderTable(color string) error {
+	primaryColor := getColor(color)
+
+	headers := []string{"#", "Name", "Symbol", "Market Cap", "Price (USD)", "Circulating Supply", "Total Supply", "Volume (24H)", "% Change (1H)", "% Change (24H)", "% Change (7D)", "Last Updated"}
+
+	data, _ := coinApi.GetAllCoinData(50)
+
+	rows := (func() [][]string {
+		ps := make([][]string, len(data)+1)
+		i := 1
+		for _, coinInfo := range data {
+			unix, _ := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
+
+			ps[i] = []string{
+				humanize.Comma(int64(coinInfo.Rank)),
+				coinInfo.Name,
+				coinInfo.Symbol,
+				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.MarketCapUsd)),
+				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.PriceUsd)),
+				fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.AvailableSupply), coinInfo.Symbol),
+				fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.TotalSupply), coinInfo.Symbol),
+				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.Usd24hVolume)),
+				fmt.Sprintf("%.2f%%", coinInfo.PercentChange1h),
+				fmt.Sprintf("%.2f%%", coinInfo.PercentChange24h),
+				fmt.Sprintf("%.2f%%", coinInfo.PercentChange7d),
+				time.Unix(unix, 0).Format("15:04:05 Jan 02"),
+			}
+
+			i = i + 1
+		}
+		return ps
+	})()
+
+	rows[0] = headers
+
+	slice.Sort(rows[:], func(i, j int) bool {
+		a, _ := strconv.Atoi(rows[i][0])
+		b, _ := strconv.Atoi(rows[j][0])
+		return a < b
+	})
+
+	table := ui.NewTable()
+	table.Rows = rows
+	table.FgColor = primaryColor
+	table.BgColor = ui.ColorDefault
+	table.BorderFg = primaryColor
+	table.Y = 0
+	table.X = 0
+	table.Width = 100
+	table.Height = 103
+
+	ui.Render(table)
+
+	// reset
+	ui.Body.Rows = ui.Body.Rows[:0]
+
+	// add grid rows and columns
+	ui.Body.AddRows(
+		ui.NewCol(0, 0, table),
+	)
+
+	// calculate layout
+	ui.Body.Align()
+
+	// render to terminal
+	ui.Render(ui.Body)
+
+	return nil
+}
+
 func main() {
-	coin := ""
-	dateRange := ""
-	color := ""
+	var coin = flag.String("coin", "bitcoin", "Cryptocurrency name. ie. bitcoin | ethereum | litecoin | etc...")
+	var dateRange = flag.String("date", "7d", "Chart range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y")
+	var color = flag.String("color", "green", "Primary color. ie. green | cyan | magenta | red | yellow | white")
+	var isTable = flag.Bool("table", false, "Show of top cryptocurrencies")
 
-	argsWithoutProg := os.Args[1:]
-
-	if len(argsWithoutProg) > 0 {
-		coin = argsWithoutProg[0]
-	}
-
-	if len(argsWithoutProg) > 1 {
-		dateRange = argsWithoutProg[1]
-	}
-
-	if len(argsWithoutProg) > 2 {
-		color = argsWithoutProg[2]
-	}
+	flag.Parse()
 
 	err := ui.Init()
 	if err != nil {
@@ -304,7 +370,11 @@ func main() {
 	}
 	defer ui.Close()
 
-	err = Render(coin, dateRange, color)
+	if *isTable {
+		err = RenderTable(*color)
+	} else {
+		err = RenderChartDash(*coin, *dateRange, *color)
+	}
 
 	if err != nil {
 		panic(err)
@@ -329,7 +399,14 @@ func main() {
 	go func() {
 	RESTART:
 		for range ticker.C {
-			err := Render(coin, dateRange, color)
+			var err error
+
+			if *isTable {
+				err = RenderTable(*color)
+			} else {
+				err = RenderChartDash(*coin, *dateRange, *color)
+			}
+
 			if err != nil {
 				goto RESTART
 			}

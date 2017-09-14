@@ -2,7 +2,7 @@
 
 > Cryptocurrency information and charts displayed in a dashboard from your terminal.
 
-<img src="./screenshot.png" width="750">
+<img src="./screenshot_chart.png" width="750">
 
 # Install
 
@@ -15,16 +15,33 @@ go get -u github.com/miguelmota/cryptodash/cryptodash
 # Usage
 
 ```bash
-$ cryptodash {cryptocurrency} {chart_date_range ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y} [primary_color ie. green | cyan | magenta | red | yellow | white]
+$ cryptodash -help
+
+  -coin string
+        Cryptocurrency name. ie. bitcoin | ethereum | litecoin | etc... (default "bitcoin")
+  -color string
+        Primary color. ie. green | cyan | magenta | red | yellow | white (default "green")
+  -date string
+        Chart range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y (default "7d")
+  -table
+        Show of top cryptocurrencies
 ```
 
-Here's an example of getting latest [Ethereum](https://www.ethereum.org/) info, and chart data for the last 30 days.
+Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
 
 ```bash
-$ cryptodash ethereum 30d
+$ cryptodash -coin ethereum -date 30d
 ```
 
-(output is screenshot above)
+<img src="./screenshot_chart.png" width="750">
+
+Here's an example of displaying the top 50 cryptocurrencies stats in a table:
+
+```bash
+$ cryptodash -table -color green
+```
+
+<img src="./screenshot_table.png" width="750">
 
 ## FAQ
 
