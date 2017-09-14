@@ -37,6 +37,14 @@ $ cryptodash -coin ethereum -date 30d
 
 <img src="./screenshot_chart.png" width="750">
 
+Here's an example of how you can set the primary color for the dashboard:
+
+```bash
+$ cryptodash -coin bitcoin -date 1d -color white
+```
+
+<img src="./screenshot_chart_white.png" width="750">
+
 Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 
 ```bash
