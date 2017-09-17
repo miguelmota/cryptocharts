@@ -23,6 +23,8 @@ $ cryptodash -help
         Primary color. ie. green | cyan | magenta | red | yellow | white (default "green")
   -date string
         Chart date range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y (default "7d")
+  -global
+        Show global market data.
   -table
         Show the top 50 cryptocurrencies in a table.
 ```
@@ -52,6 +54,14 @@ $ cryptodash -table -color green
 ```
 
 <img src="./screenshot_table.png" width="850">
+
+Here's an example of displaying global market data only:
+
+```bash
+$ cryptodash -global
+```
+
+<img src="./screenshot_global_market.png" width="850">
 
 # FAQ
 

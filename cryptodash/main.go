@@ -42,7 +42,7 @@ func getColor(color string) ui.Attribute {
 	return primaryColor
 }
 
-func RenderChartDash(coin string, dateRange string, color string) error {
+func RenderChartDash(coin string, dateRange string, color string, lineChartHeight uint) error {
 	if coin == "" {
 		coin = "bitcoin"
 	}
@@ -112,10 +112,14 @@ func RenderChartDash(coin string, dateRange string, color string) error {
 		return ps
 	})()
 
+	if lineChartHeight == 0 {
+		lineChartHeight = 20
+	}
+
 	lc1 := ui.NewLineChart()
 	lc1.Data = sinps
 	lc1.Width = 100
-	lc1.Height = 16
+	lc1.Height = int(lineChartHeight)
 	lc1.X = 0
 	lc1.Y = 7
 	lc1.AxesColor = primaryColor
@@ -286,6 +290,93 @@ func RenderChartDash(coin string, dateRange string, color string) error {
 	return nil
 }
 
+func RenderGlobalMarketDash(color string) error {
+	primaryColor := getColor(color)
+
+	marketData, err := coinApi.GetMarketData()
+
+	if err != nil {
+		return err
+	}
+
+	par0 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(marketData.TotalMarketCapUsd)))
+	par0.Height = 3
+	par0.Width = 20
+	par0.Y = 1
+	par0.TextFgColor = ui.ColorWhite
+	par0.BorderLabel = "Total Market Cap (USD)"
+	par0.BorderLabelFg = primaryColor
+	par0.BorderFg = primaryColor
+
+	par1 := ui.NewPar(fmt.Sprintf("$%s", humanize.Commaf(marketData.Total24hVolumeUsd)))
+	par1.Height = 3
+	par1.Width = 20
+	par1.Y = 1
+	par1.TextFgColor = ui.ColorWhite
+	par1.BorderLabel = "Total Volume (24H)"
+	par1.BorderLabelFg = primaryColor
+	par1.BorderFg = primaryColor
+
+	par2 := ui.NewPar(fmt.Sprintf("%.2f%%", marketData.BitcoinPercentageOfMarketCap))
+	par2.Height = 3
+	par2.Width = 20
+	par2.Y = 1
+	par2.TextFgColor = ui.ColorWhite
+	par2.BorderLabel = "% Bitcoin Dominance"
+	par2.BorderLabelFg = primaryColor
+	par2.BorderFg = primaryColor
+
+	par3 := ui.NewPar(fmt.Sprintf("%s", humanize.Comma(int64(marketData.ActiveCurrencies))))
+	par3.Height = 3
+	par3.Width = 20
+	par3.Y = 1
+	par3.TextFgColor = ui.ColorWhite
+	par3.BorderLabel = "Active Currencies"
+	par3.BorderLabelFg = primaryColor
+	par3.BorderFg = primaryColor
+
+	par4 := ui.NewPar(fmt.Sprintf("%s", humanize.Comma(int64(marketData.ActiveAssets))))
+	par4.Height = 3
+	par4.Width = 20
+	par4.Y = 1
+	par4.TextFgColor = ui.ColorWhite
+	par4.BorderLabel = "Active Assets"
+	par4.BorderLabelFg = primaryColor
+	par4.BorderFg = primaryColor
+
+	par5 := ui.NewPar(fmt.Sprintf("%s", humanize.Comma(int64(marketData.ActiveMarkets))))
+	par5.Height = 3
+	par5.Width = 20
+	par5.Y = 1
+	par5.TextFgColor = ui.ColorWhite
+	par5.BorderLabel = "Active Markets"
+	par5.BorderLabelFg = primaryColor
+	par5.BorderFg = primaryColor
+
+	// reset
+	ui.Body.Rows = ui.Body.Rows[:0]
+
+	// add grid rows and columns
+	ui.Body.AddRows(
+		ui.NewRow(
+			ui.NewCol(2, 0, par0),
+			ui.NewCol(2, 0, par1),
+			ui.NewCol(2, 0, par2),
+			ui.NewCol(2, 0, par3),
+			ui.NewCol(2, 0, par4),
+			ui.NewCol(2, 0, par5),
+		),
+	)
+
+	// calculate layout
+	ui.Body.Align()
+
+	// render to terminal
+	ui.Render(ui.Body)
+
+	return nil
+}
+
 func RenderTable(color string) error {
 	primaryColor := getColor(color)
 
@@ -360,7 +451,9 @@ func main() {
 	var coin = flag.String("coin", "bitcoin", "Cryptocurrency name. ie. bitcoin | ethereum | litecoin | etc...")
 	var dateRange = flag.String("date", "7d", "Chart date range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y")
 	var color = flag.String("color", "green", "Primary color. ie. green | cyan | magenta | red | yellow | white")
-	var isTable = flag.Bool("table", false, "Show the top 50 cryptocurrencies in a table.")
+	var lineChartHeight = flag.Uint("chart-height", 20, "Line chart height: .ie. 15 | 20 | 25 | 30")
+	var showTable = flag.Bool("table", false, "Show the top 50 cryptocurrencies in a table.")
+	var showGlobalMarketDash = flag.Bool("global", false, "Show global market data.")
 
 	flag.Parse()
 
@@ -370,10 +463,12 @@ func main() {
 	}
 	defer ui.Close()
 
-	if *isTable {
+	if *showGlobalMarketDash {
+		err = RenderGlobalMarketDash(*color)
+	} else if *showTable {
 		err = RenderTable(*color)
 	} else {
-		err = RenderChartDash(*coin, *dateRange, *color)
+		err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 	}
 
 	if err != nil {
@@ -401,10 +496,12 @@ func main() {
 		for range ticker.C {
 			var err error
 
-			if *isTable {
+			if *showGlobalMarketDash {
+				err = RenderGlobalMarketDash(*color)
+			} else if *showTable {
 				err = RenderTable(*color)
 			} else {
-				err = RenderChartDash(*coin, *dateRange, *color)
+				err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 			}
 
 			if err != nil {
