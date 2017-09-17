@@ -17,6 +17,8 @@ go get -u github.com/miguelmota/cryptodash/cryptodash
 ```bash
 $ cryptodash -help
 
+  -chart-height uint
+        Line chart height: .ie. 15 | 20 | 25 | 30 (default 20)
   -coin string
         Cryptocurrency name. ie. bitcoin | ethereum | litecoin | etc... (default "bitcoin")
   -color string
