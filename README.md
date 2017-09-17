@@ -14,7 +14,7 @@ go get -u github.com/miguelmota/cryptodash/cryptodash
 
 # Usage
 
-```bash
+```text
 $ cryptodash -help
 
   -chart-height uint
