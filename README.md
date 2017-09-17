@@ -54,7 +54,7 @@ $ cryptodash -coin bitcoin -date 1d -color white
 Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 
 ```bash
-$ cryptodash -table -limit 25 -color green
+$ cryptodash -table -limit 50 -color green
 ```
 
 <img src="./screenshot_table.png" width="850">
