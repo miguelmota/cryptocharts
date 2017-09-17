@@ -377,12 +377,12 @@ func RenderGlobalMarketDash(color string) error {
 	return nil
 }
 
-func RenderTable(color string) error {
+func RenderTable(color string, limit uint) error {
 	primaryColor := getColor(color)
 
 	headers := []string{"#", "Name", "Symbol", "Market Cap", "Price (USD)", "Circulating Supply", "Total Supply", "Volume (24H)", "% Change (1H)", "% Change (24H)", "% Change (7D)", "Last Updated"}
 
-	data, _ := coinApi.GetAllCoinData(50)
+	data, _ := coinApi.GetAllCoinData(int(limit))
 
 	rows := (func() [][]string {
 		ps := make([][]string, len(data)+1)
@@ -453,6 +453,7 @@ func main() {
 	var color = flag.String("color", "green", "Primary color. ie. green | cyan | magenta | red | yellow | white")
 	var lineChartHeight = flag.Uint("chart-height", 20, "Line chart height: .ie. 15 | 20 | 25 | 30")
 	var showTable = flag.Bool("table", false, "Show the top 50 cryptocurrencies in a table.")
+	var limit = flag.Uint("limit", 50, "Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100")
 	var showGlobalMarketDash = flag.Bool("global", false, "Show global market data.")
 
 	flag.Parse()
@@ -466,7 +467,7 @@ func main() {
 	if *showGlobalMarketDash {
 		err = RenderGlobalMarketDash(*color)
 	} else if *showTable {
-		err = RenderTable(*color)
+		err = RenderTable(*color, *limit)
 	} else {
 		err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 	}
@@ -499,7 +500,7 @@ func main() {
 			if *showGlobalMarketDash {
 				err = RenderGlobalMarketDash(*color)
 			} else if *showTable {
-				err = RenderTable(*color)
+				err = RenderTable(*color, *limit)
 			} else {
 				err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 			}

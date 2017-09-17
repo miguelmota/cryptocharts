@@ -27,6 +27,8 @@ $ cryptodash -help
         Chart date range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y (default "7d")
   -global
         Show global market data.
+  -limit uint
+        Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100 (default 50)
   -table
         Show the top 50 cryptocurrencies in a table.
 ```
@@ -52,7 +54,7 @@ $ cryptodash -coin bitcoin -date 1d -color white
 Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 
 ```bash
-$ cryptodash -table -color green
+$ cryptodash -table -limit 25 -color green
 ```
 
 <img src="./screenshot_table.png" width="850">
