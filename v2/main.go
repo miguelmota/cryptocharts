@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dustin/go-humanize"
+
 	"github.com/bradfitz/slice"
 	"github.com/fatih/color"
 	cmc "github.com/miguelmota/go-coinmarketcap"
@@ -79,8 +81,16 @@ func (s *Service) Start() {
 	})
 
 	for _, coin := range s.coins {
-		str := fmt.Sprintf("%v %v %v %v %v %v %v %v %v %v", coin.Rank, coin.Name, coin.Symbol, coin.MarketCapUsd, coin.PriceUsd, coin.Usd24hVolume, coin.AvailableSupply, coin.PercentChange1h, coin.PercentChange24h, coin.PercentChange7d)
-		menuData = append(menuData, str)
+		menuData = append(menuData, fmt.Sprint(coin.Rank))
+		menuData = append(menuData, coin.Name)
+		menuData = append(menuData, coin.Symbol)
+		menuData = append(menuData, humanize.Commaf(coin.PriceUsd))
+		menuData = append(menuData, humanize.Commaf(coin.MarketCapUsd))
+		menuData = append(menuData, humanize.Commaf(coin.AvailableSupply))
+		menuData = append(menuData, humanize.Commaf(coin.Usd24hVolume))
+		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange1h))
+		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange24h))
+		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange7d))
 	}
 
 	s.menuData = menuData
@@ -231,7 +241,7 @@ func (s *Service) renderMenu() {
 		dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
 		s.menu.SubWindow(dwin)
 		s.menu.Option(gc.O_ONEVALUE, false)
-		s.menu.Format(s.screenRows-10, 1)
+		s.menu.Format(s.screenRows-10, 10)
 		s.menu.Mark(" * ")
 	} else {
 		s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
