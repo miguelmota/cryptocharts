@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -33,7 +34,10 @@ type Service struct {
 	menu       *gc.Menu
 	menuItems  []*gc.MenuItem
 	menuData   []string
+	menuHeader string
 	coins      []*cmc.Coin
+	sortBy     string
+	sortDesc   bool
 }
 
 // Options options struct
@@ -72,16 +76,123 @@ func (s *Service) Start() {
 		log.Fatal(err)
 	}
 
-	var menuData []string
 	for i := range coins {
 		coin := coins[i]
 		s.coins = append(s.coins, &coin)
 	}
 
+	s.sortBy = "rank"
+	s.sortDesc = false
+	s.setMenuData()
+	s.renderMenu()
+	defer s.menu.UnPost()
+
+	wg.Add(1)
+	resizeChannel := make(chan os.Signal)
+	signal.Notify(resizeChannel, syscall.SIGWINCH)
+	go s.onWindowResize(resizeChannel)
+	s.renderLogWindow()
+	s.log("Use <up/down> arrows to navigate. <q> to exit. <F> keys to sort. <Enter> to visit coin on CoinMarketCap.")
+
+	//stdsrc.GetChar() // required so it doesn't exit
+	//wg.Wait()
+	for {
+		gc.Update()
+		ch := s.menuwindow.GetChar()
+		switch ch {
+		case gc.KEY_RETURN, gc.KEY_ENTER:
+			s.menu.Driver(gc.REQ_TOGGLE)
+			for _, item := range s.menu.Items() {
+				if item.Value() {
+					s.handleClick(item.Index())
+					break
+				}
+			}
+			s.menu.Driver(gc.REQ_TOGGLE)
+		case gc.KEY_F1:
+			s.handleSort("rank", false)
+		case gc.KEY_F2:
+			s.handleSort("name", true)
+		case gc.KEY_F3:
+			s.handleSort("symbol", false)
+		case gc.KEY_F4:
+			s.handleSort("price", true)
+		case gc.KEY_F5:
+			s.handleSort("marketcap", true)
+		case gc.KEY_F6:
+			s.handleSort("24hvolume", true)
+		case gc.KEY_F7:
+			s.handleSort("1hchange", true)
+		case gc.KEY_F8:
+			s.handleSort("24hchange", true)
+		case gc.KEY_F9:
+			s.handleSort("7dchange", true)
+		case gc.KEY_F10:
+			s.handleSort("totalsupply", true)
+		case gc.KEY_F11:
+			s.handleSort("availablesupply", true)
+		case gc.KEY_F12:
+			s.handleSort("lastupdated", true)
+		case 'q':
+			return
+		default:
+			s.menu.Driver(gc.DriverActions[ch])
+		}
+	}
+}
+
+func (s *Service) handleClick(idx int) {
+	slug := strings.ToLower(strings.Replace(s.coins[idx].Name, " ", "-", -1))
+	exec.Command("open", fmt.Sprintf("https://coinmarketcap.com/currencies/%s", slug)).Output()
+}
+
+func (s *Service) handleSort(name string, desc bool) {
+	if s.sortBy == name {
+		s.sortDesc = !s.sortDesc
+	} else {
+		s.sortBy = name
+		s.sortDesc = desc
+	}
+	s.setMenuData()
+	s.renderMenu()
+}
+
+func (s *Service) setMenuData() {
 	slice.Sort(s.coins[:], func(i, j int) bool {
-		return s.coins[i].Rank < s.coins[j].Rank
+		if s.sortDesc == true {
+			i, j = j, i
+		}
+		switch s.sortBy {
+		case "rank":
+			return s.coins[i].Rank < s.coins[j].Rank
+		case "name":
+			return s.coins[i].Name < s.coins[j].Name
+		case "symbol":
+			return s.coins[i].Symbol < s.coins[j].Symbol
+		case "price":
+			return s.coins[i].PriceUsd < s.coins[j].PriceUsd
+		case "marketcap":
+			return s.coins[i].MarketCapUsd < s.coins[j].MarketCapUsd
+		case "24hvolume":
+			return s.coins[i].Usd24hVolume < s.coins[j].Usd24hVolume
+		case "1hchange":
+			return s.coins[i].PercentChange1h < s.coins[j].PercentChange1h
+		case "24hchange":
+			return s.coins[i].PercentChange24h < s.coins[j].PercentChange24h
+		case "7dchange":
+			return s.coins[i].PercentChange7d < s.coins[j].PercentChange7d
+		case "totalsupply":
+			return s.coins[i].TotalSupply < s.coins[j].TotalSupply
+		case "availablesupply":
+			return s.coins[i].AvailableSupply < s.coins[j].AvailableSupply
+		case "lastupdated":
+			return s.coins[i].LastUpdated < s.coins[j].LastUpdated
+		default:
+			return s.coins[i].Rank < s.coins[j].Rank
+		}
 	})
 
+	var menuData []string
 	for _, coin := range s.coins {
 		unix, _ := strconv.ParseInt(coin.LastUpdated, 10, 64)
 		lastUpdated := time.Unix(unix, 0).Format("15:04:05 Jan 02")
@@ -109,37 +220,26 @@ func (s *Service) Start() {
 
 	s.menuData = menuData
 
-	s.renderMenu()
-	defer s.menu.UnPost()
-
-	wg.Add(1)
-	resizeChannel := make(chan os.Signal)
-	signal.Notify(resizeChannel, syscall.SIGWINCH)
-	go s.onWindowResize(resizeChannel)
-	s.renderLogWindow()
-	s.log("Use up/down arrows to navigate. 'q' to exit")
-
-	//stdsrc.GetChar() // required so it doesn't exit
-	//wg.Wait()
-	for {
-		gc.Update()
-		switch ch := s.menuwindow.GetChar(); ch {
-		case gc.KEY_RETURN, gc.KEY_ENTER:
-			s.menu.Driver(gc.REQ_TOGGLE)
-			for _, item := range s.menu.Items() {
-				if item.Value() {
-					coin := s.coins[item.Index()]
-					exec.Command("open", fmt.Sprintf("https://coinmarketcap.com/currencies/%s", coin.Name)).Output()
-					break
-				}
-			}
-			s.menu.Driver(gc.REQ_TOGGLE)
-		case 'q':
-			return
-		default:
-			s.menu.Driver(gc.DriverActions[ch])
-		}
+	headers := []string{
+		pad.Right("Rank", 6, " "),
+		pad.Right("Name", 20, " "),
+		pad.Right("Symbol", 10, " "),
+		pad.Right("Price", 10, " "),
+		pad.Right("Market Cap", 17, " "),
+		pad.Right("24 Volume", 16, " "),
+		pad.Right("1H%", 9, " "),
+		pad.Right("24H%", 9, " "),
+		pad.Right("7D%", 8, " "),
+		pad.Right("Total Supply", 20, " "),
+		pad.Right("Available Supply", 19, " "),
+		pad.Right("Last Updated", 16, " "),
 	}
+	header := "   "
+	for _, h := range headers {
+		header = fmt.Sprintf("%s%s", header, h)
+	}
+
+	s.menuHeader = header
 }
 
 // SetColorPairs sets color pairs
@@ -149,6 +249,8 @@ func (s *Service) setColorPairs() {
 	gc.InitPair(3, gc.C_WHITE, gc.C_BLACK)
 	gc.InitPair(4, gc.C_YELLOW, gc.C_BLACK)
 	gc.InitPair(5, gc.C_BLACK, gc.C_BLACK)
+	gc.InitPair(6, gc.C_BLACK, gc.C_GREEN)
+	gc.InitPair(7, gc.C_BLACK, gc.C_CYAN)
 }
 
 // RenderMainWindow renders main window
@@ -221,53 +323,54 @@ func (s *Service) onWindowResize(channel chan os.Signal) {
 
 // RenderMenu renders menu
 func (s *Service) renderMenu() {
-	if len(s.menuItems) == 0 {
-		items := make([]*gc.MenuItem, len(s.menuData))
-		var err error
-		for i, val := range s.menuData {
-			items[i], err = gc.NewItem(val, "")
-			if err != nil {
-				log.Fatal(err)
-			}
-			//defer items[i].Free()
-		}
-
-		s.menuItems = items
-	}
-
-	if s.menu == nil {
-		var err error
-		s.menu, err = gc.NewMenu(s.menuItems)
+	//if len(s.menuItems) == 0 {
+	items := make([]*gc.MenuItem, len(s.menuData))
+	var err error
+	for i, val := range s.menuData {
+		items[i], err = gc.NewItem(val, "")
 		if err != nil {
 			log.Fatal(err)
 		}
+		//defer items[i].Free()
 	}
 
-	if s.menuwindow == nil {
-		var err error
-		s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
-		s.menuwindow.ScrollOk(true)
-		if err != nil {
-			log.Fatal(err)
-		}
+	s.menuItems = items
+	//}
 
-		s.menuwindow.Keypad(true)
-		s.menu.SetWindow(s.menuwindow)
-		dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
-		s.menu.SubWindow(dwin)
-		s.menu.Option(gc.O_ONEVALUE, false)
-		s.menu.Format(s.screenRows-10, 1)
-		s.menu.Mark(" * ")
-	} else {
-		s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
+	//if s.menu == nil {
+	//		var err error
+	s.menu, err = gc.NewMenu(s.menuItems)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//} else {
+	//		s.menu.SetItems(s.menuItems)
+	//	}
+
+	//if s.menuwindow == nil {
+	//var err error
+	s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
+	s.menuwindow.ScrollOk(true)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	title := "CoinMarketCap"
+	s.menuwindow.Keypad(true)
+	s.menu.SetWindow(s.menuwindow)
+	dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
+	s.menu.SubWindow(dwin)
+	s.menu.Option(gc.O_ONEVALUE, false)
+	s.menu.Format(s.screenRows-10, 1)
+	s.menu.Mark(" * ")
+	//} else {
+	//	s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
+	//}
+
 	s.menuwindow.Clear()
 	s.menuwindow.Box(0, 0)
-	s.menuwindow.ColorOn(3)
-	s.menuwindow.MovePrint(1, 1, title)
-	s.menuwindow.ColorOff(3)
+	s.menuwindow.ColorOn(6)
+	s.menuwindow.MovePrint(1, 1, s.menuHeader)
+	s.menuwindow.ColorOff(6)
 	s.menuwindow.MoveAddChar(2, 0, gc.ACS_LTEE)
 	s.menuwindow.HLine(2, 1, gc.ACS_HLINE, s.screenCols-6)
 	s.menu.Post()

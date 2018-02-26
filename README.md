@@ -2,7 +2,7 @@
 
 > Cryptocurrency information and charts displayed in a dashboard from your terminal.
 
-<img src="./screenshot_chart.png" width="750">
+<img src="./assets/screenshot_chart.png" width="750">
 
 # Install
 
@@ -41,7 +41,7 @@ Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats,
 $ cryptodash -coin ethereum -date 30d
 ```
 
-<img src="./screenshot_chart.png" width="750">
+<img src="./assets/screenshot_chart.png" width="750">
 
 Here's an example of how you can set the primary color for the dashboard:
 
@@ -49,7 +49,7 @@ Here's an example of how you can set the primary color for the dashboard:
 $ cryptodash -coin bitcoin -date 1d -color white
 ```
 
-<img src="./screenshot_chart_white.png" width="750">
+<img src="./assets/screenshot_chart_white.png" width="750">
 
 Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 
@@ -57,7 +57,7 @@ Here's an example of displaying the top 50 cryptocurrencies stats in a table:
 $ cryptodash -table -limit 50 -color green
 ```
 
-<img src="./screenshot_table.png" width="850">
+<img src="./assets/screenshot_table.png" width="850">
 
 Here's an example of displaying global market data only:
 
@@ -65,7 +65,7 @@ Here's an example of displaying global market data only:
 $ cryptodash -global
 ```
 
-<img src="./screenshot_global_market.png" width="850">
+<img src="./assets/screenshot_global_market.png" width="850">
 
 # FAQ
 
