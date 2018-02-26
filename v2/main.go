@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/fatih/color"
 	cmc "github.com/miguelmota/go-coinmarketcap"
 	gc "github.com/rgburke/goncurses"
+	pad "github.com/willf/pad/utf8"
 )
 
 var yellow = color.New(color.FgYellow).SprintFunc()
@@ -81,16 +83,28 @@ func (s *Service) Start() {
 	})
 
 	for _, coin := range s.coins {
-		menuData = append(menuData, fmt.Sprint(coin.Rank))
-		menuData = append(menuData, coin.Name)
-		menuData = append(menuData, coin.Symbol)
-		menuData = append(menuData, humanize.Commaf(coin.PriceUsd))
-		menuData = append(menuData, humanize.Commaf(coin.MarketCapUsd))
-		menuData = append(menuData, humanize.Commaf(coin.AvailableSupply))
-		menuData = append(menuData, humanize.Commaf(coin.Usd24hVolume))
-		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange1h))
-		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange24h))
-		menuData = append(menuData, fmt.Sprintf("%.2f%%", coin.PercentChange7d))
+		unix, _ := strconv.ParseInt(coin.LastUpdated, 10, 64)
+		lastUpdated := time.Unix(unix, 0).Format("15:04:05 Jan 02")
+		fields := []string{
+			pad.Right(fmt.Sprint(coin.Rank), 4, " "),
+			pad.Right(coin.Name, 22, " "),
+			pad.Right(coin.Symbol, 6, " "),
+			pad.Left(humanize.Commaf(coin.PriceUsd), 12, " "),
+			pad.Left(humanize.Commaf(coin.MarketCapUsd), 17, " "),
+			pad.Left(humanize.Commaf(coin.Usd24hVolume), 15, " "),
+			pad.Left(fmt.Sprintf("%.2f%%", coin.PercentChange1h), 9, " "),
+			pad.Left(fmt.Sprintf("%.2f%%", coin.PercentChange24h), 9, " "),
+			pad.Left(fmt.Sprintf("%.2f%%", coin.PercentChange7d), 9, " "),
+			pad.Left(humanize.Commaf(coin.TotalSupply), 20, " "),
+			pad.Left(humanize.Commaf(coin.AvailableSupply), 18, " "),
+			pad.Left(fmt.Sprintf("%s", lastUpdated), 18, " "),
+			// add %percent of cap
+		}
+		var str string
+		for _, f := range fields {
+			str = fmt.Sprintf("%s%s", str, f)
+		}
+		menuData = append(menuData, str)
 	}
 
 	s.menuData = menuData
@@ -232,6 +246,7 @@ func (s *Service) renderMenu() {
 	if s.menuwindow == nil {
 		var err error
 		s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
+		s.menuwindow.ScrollOk(true)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -241,7 +256,7 @@ func (s *Service) renderMenu() {
 		dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
 		s.menu.SubWindow(dwin)
 		s.menu.Option(gc.O_ONEVALUE, false)
-		s.menu.Format(s.screenRows-10, 10)
+		s.menu.Format(s.screenRows-10, 1)
 		s.menu.Mark(" * ")
 	} else {
 		s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
