@@ -75,7 +75,7 @@ Table commands:
 
 - `<up>`/`<down>` arrows to navigate.
 - `<Enter>` to visit highlighted coin on CoinMarketCap.
-- `<F1>` to sort by ***Rank*.
+- `<F1>` to sort by *Rank*.
 - `<F2>` to sort by *Name*.
 - `<F3>` to sort by *Symbol*.
 - `<F4>` to sort by *Price*.
