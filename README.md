@@ -4,6 +4,16 @@
 
 <img src="./assets/screenshot_chart.png" width="750">
 
+## Table of Contents
+
+- [Install](#Install)
+- [Usage](#Usage)
+- [Examples](#Examples)
+  - [Charts](#Charts)
+  - [Table](#Table)
+- [FAQ](#FAQ)
+- [License](#License)
+
 ## Install
 
 Make sure to have [golang](https://golang.org/) installed, then do:
