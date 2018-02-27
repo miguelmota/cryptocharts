@@ -69,7 +69,7 @@ Here's an example of displaying the top 100 cryptocurrencies stats in a table:
 $ cryptodash -table -limit 100 -color green
 ```
 
-<img src="./assets/screenshot_table.gif" width="850">
+<img src="./assets/screenshot_table.gif" width="900">
 
 # FAQ
 
