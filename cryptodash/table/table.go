@@ -1,8 +1,7 @@
-package main
+package table
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -12,56 +11,66 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dustin/go-humanize"
-
-	"github.com/bradfitz/slice"
-	"github.com/fatih/color"
+	slice "github.com/bradfitz/slice"
+	humanize "github.com/dustin/go-humanize"
 	cmc "github.com/miguelmota/go-coinmarketcap"
 	gc "github.com/rgburke/goncurses"
 	pad "github.com/willf/pad/utf8"
 )
 
-var yellow = color.New(color.FgYellow).SprintFunc()
 var wg sync.WaitGroup
 
 // Service service struct
 type Service struct {
-	screenRows int
-	screenCols int
-	mainwin    *gc.Window
-	menuwindow *gc.Window
-	logwin     *gc.Window
-	menu       *gc.Menu
-	menuItems  []*gc.MenuItem
-	menuData   []string
-	menuHeader string
-	coins      []*cmc.Coin
-	sortBy     string
-	sortDesc   bool
+	screenRows   int
+	screenCols   int
+	mainwin      *gc.Window
+	menuwindow   *gc.Window
+	logwin       *gc.Window
+	menu         *gc.Menu
+	menuItems    []*gc.MenuItem
+	menuData     []string
+	menuHeader   string
+	coins        []*cmc.Coin
+	sortBy       string
+	sortDesc     bool
+	limit        uint
+	primaryColor string
 }
 
 // Options options struct
 type Options struct {
+	Color string
+	Limit uint
 }
+
+var once sync.Once
 
 // New returns new service
 func New(opts *Options) *Service {
-	return &Service{}
+	var instance *Service
+	//	once.Do(func() {
+	instance = &Service{}
+	instance.primaryColor = opts.Color
+	instance.limit = opts.Limit
+	//	})
+
+	return instance
 }
 
-// Start starts GUI
-func (s *Service) Start() {
+// Render starts GUI
+func (s *Service) Render() error {
 	stdsrc, err := gc.Init()
 	defer gc.End()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	gc.StartColor()
+	s.setColorPairs()
 	gc.Raw(true)
 	gc.Echo(false)
 	gc.Cursor(0)
 	stdsrc.Keypad(true)
-	s.setColorPairs()
 	cols, rows := GetScreenSize()
 	s.screenRows = rows
 	s.screenCols = cols
@@ -71,16 +80,10 @@ func (s *Service) Start() {
 	gc.UpdatePanels()
 	gc.Update()
 
-	coins, err := cmc.GetAllCoinData(100)
+	err = s.fetchData()
 	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
-
-	for i := range coins {
-		coin := coins[i]
-		s.coins = append(s.coins, &coin)
-	}
-
 	s.sortBy = "rank"
 	s.sortDesc = false
 	s.setMenuData()
@@ -134,11 +137,26 @@ func (s *Service) Start() {
 		case gc.KEY_F12:
 			s.handleSort("lastupdated", true)
 		case 'q':
-			return
+			return nil
 		default:
+			//s.log(fmt.Sprint(ch))
 			s.menu.Driver(gc.DriverActions[ch])
 		}
 	}
+}
+
+func (s *Service) fetchData() error {
+	coins, err := cmc.GetAllCoinData(int(s.limit))
+	if err != nil {
+		return err
+	}
+
+	for i := range coins {
+		coin := coins[i]
+		s.coins = append(s.coins, &coin)
+	}
+
+	return nil
 }
 
 func (s *Service) handleClick(idx int) {
@@ -244,29 +262,43 @@ func (s *Service) setMenuData() {
 
 // SetColorPairs sets color pairs
 func (s *Service) setColorPairs() {
-	gc.InitPair(1, gc.C_RED, gc.C_BLACK)
-	gc.InitPair(2, gc.C_CYAN, gc.C_BLACK)
-	gc.InitPair(3, gc.C_WHITE, gc.C_BLACK)
-	gc.InitPair(4, gc.C_YELLOW, gc.C_BLACK)
-	gc.InitPair(5, gc.C_BLACK, gc.C_BLACK)
-	gc.InitPair(6, gc.C_BLACK, gc.C_GREEN)
-	gc.InitPair(7, gc.C_BLACK, gc.C_CYAN)
+	switch s.primaryColor {
+	case "green":
+		gc.InitPair(1, gc.C_GREEN, gc.C_BLACK)
+	case "cyan", "blue":
+		gc.InitPair(1, gc.C_CYAN, gc.C_BLACK)
+	case "magenta", "pink", "purple":
+		gc.InitPair(1, gc.C_MAGENTA, gc.C_BLACK)
+	case "white":
+		gc.InitPair(1, gc.C_WHITE, gc.C_BLACK)
+	case "red":
+		gc.InitPair(1, gc.C_RED, gc.C_BLACK)
+	case "yellow", "orange":
+		gc.InitPair(1, gc.C_YELLOW, gc.C_BLACK)
+	default:
+		gc.InitPair(1, gc.C_WHITE, gc.C_BLACK)
+	}
+
+	gc.InitPair(2, gc.C_BLACK, gc.C_BLACK)
+	gc.InitPair(3, gc.C_BLACK, gc.C_GREEN)
+	gc.InitPair(4, gc.C_BLACK, gc.C_CYAN)
 }
 
 // RenderMainWindow renders main window
-func (s *Service) renderMainWindow() {
+func (s *Service) renderMainWindow() error {
 	if s.mainwin == nil {
 		var err error
 		s.mainwin, err = gc.NewWindow(s.screenRows, s.screenCols, 0, 0)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	s.mainwin.Clear()
-	s.mainwin.ColorOn(5)
+	s.mainwin.ColorOn(2)
 	s.mainwin.Resize(s.screenRows, s.screenCols)
 	s.mainwin.Box(0, 0)
 	s.mainwin.Refresh()
+	return nil
 }
 
 // ResizeWindows resizes windows
@@ -274,29 +306,30 @@ func (s *Service) resizeWindows() {
 	s.renderMainWindow()
 	s.renderMenu()
 	s.renderLogWindow()
-	s.log(fmt.Sprintf("%v %v %v", time.Now().Unix(), s.screenCols, s.screenRows))
+	//s.log(fmt.Sprintf("%v %v %v", time.Now().Unix(), s.screenCols, s.screenRows))
 }
 
-func (s *Service) renderLogWindow() {
+func (s *Service) renderLogWindow() error {
 	var err error
 	if s.logwin == nil {
 		s.logwin, err = gc.NewWindow(3, s.screenCols-4, s.screenRows-4, 2)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	s.logwin.Clear()
 	s.logwin.Resize(3, s.screenCols-4)
 	s.logwin.MoveWindow(2, 30)
-	s.logwin.ColorOn(3)
+	s.logwin.ColorOn(1)
 	s.logwin.Box(0, 0)
 	s.logwin.Refresh()
+	return nil
 }
 
 // Log logs debug messages
 func (s *Service) log(msg string) {
 	s.logwin.Clear()
-	s.logwin.ColorOn(3)
+	s.logwin.ColorOn(1)
 	s.logwin.Box(0, 0)
 	s.logwin.MovePrint(1, 1, msg)
 	s.logwin.Refresh()
@@ -322,14 +355,14 @@ func (s *Service) onWindowResize(channel chan os.Signal) {
 }
 
 // RenderMenu renders menu
-func (s *Service) renderMenu() {
+func (s *Service) renderMenu() error {
 	//if len(s.menuItems) == 0 {
 	items := make([]*gc.MenuItem, len(s.menuData))
 	var err error
 	for i, val := range s.menuData {
 		items[i], err = gc.NewItem(val, "")
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		//defer items[i].Free()
 	}
@@ -341,7 +374,7 @@ func (s *Service) renderMenu() {
 	//		var err error
 	s.menu, err = gc.NewMenu(s.menuItems)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	//} else {
 	//		s.menu.SetItems(s.menuItems)
@@ -352,7 +385,7 @@ func (s *Service) renderMenu() {
 	s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
 	s.menuwindow.ScrollOk(true)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	s.menuwindow.Keypad(true)
@@ -368,16 +401,11 @@ func (s *Service) renderMenu() {
 
 	s.menuwindow.Clear()
 	s.menuwindow.Box(0, 0)
-	s.menuwindow.ColorOn(6)
+	s.menuwindow.ColorOn(1)
 	s.menuwindow.MovePrint(1, 1, s.menuHeader)
-	s.menuwindow.ColorOff(6)
 	s.menuwindow.MoveAddChar(2, 0, gc.ACS_LTEE)
 	s.menuwindow.HLine(2, 1, gc.ACS_HLINE, s.screenCols-6)
 	s.menu.Post()
 	s.menuwindow.Refresh()
-}
-
-func main() {
-	service := New(&Options{})
-	service.Start()
+	return nil
 }

@@ -35,6 +35,8 @@ $ cryptodash -help
 
 ## Examples
 
+### Chart
+
 Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
 
 ```bash
@@ -51,14 +53,6 @@ $ cryptodash -coin bitcoin -date 1d -color white
 
 <img src="./assets/screenshot_chart_white.png" width="750">
 
-Here's an example of displaying the top 50 cryptocurrencies stats in a table:
-
-```bash
-$ cryptodash -table -limit 50 -color green
-```
-
-<img src="./assets/screenshot_table.png" width="850">
-
 Here's an example of displaying global market data only:
 
 ```bash
@@ -66,6 +60,16 @@ $ cryptodash -global
 ```
 
 <img src="./assets/screenshot_global_market.png" width="850">
+
+### Table
+
+Here's an example of displaying the top 100 cryptocurrencies stats in a table:
+
+```bash
+$ cryptodash -table -limit 100 -color green
+```
+
+<img src="./assets/screenshot_table.gif" width="850">
 
 # FAQ
 

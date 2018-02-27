@@ -7,41 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bradfitz/slice"
-	"github.com/dustin/go-humanize"
+	slice "github.com/bradfitz/slice"
+	humanize "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
-	coinApi "github.com/miguelmota/go-coinmarketcap"
+	table "github.com/miguelmota/cryptodash/cryptodash/table"
+	cmc "github.com/miguelmota/go-coinmarketcap"
 )
 
-func FloatToString(input_num float64) string {
-	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', 6, 64)
-}
-
-func getColor(color string) ui.Attribute {
-	if color == "" {
-		color = "green"
-	}
-
-	primaryColor := ui.ColorGreen
-
-	if color == "green" {
-		primaryColor = ui.ColorGreen
-	} else if color == "cyan" || color == "blue" {
-		primaryColor = ui.ColorCyan
-	} else if color == "magenta" || color == "pink" || color == "purple" {
-		primaryColor = ui.ColorMagenta
-	} else if color == "white" {
-		primaryColor = ui.ColorWhite
-	} else if color == "red" {
-		primaryColor = ui.ColorRed
-	} else if color == "yellow" || color == "orange" {
-		primaryColor = ui.ColorYellow
-	}
-
-	return primaryColor
-}
-
+// RenderChartDash renders chart dash
 func RenderChartDash(coin string, dateRange string, color string, lineChartHeight uint) error {
 	if coin == "" {
 		coin = "bitcoin"
@@ -55,11 +28,11 @@ func RenderChartDash(coin string, dateRange string, color string, lineChartHeigh
 
 	var (
 		oneMinute int64 = 60
-		oneHour   int64 = oneMinute * 60
-		oneDay    int64 = oneHour * 24
-		oneWeek   int64 = oneDay * 7
-		oneMonth  int64 = oneDay * 30
-		oneYear   int64 = oneDay * 365
+		oneHour         = oneMinute * 60
+		oneDay          = oneHour * 24
+		oneWeek         = oneDay * 7
+		oneMonth        = oneDay * 30
+		oneYear         = oneDay * 365
 	)
 
 	now := time.Now()
@@ -91,13 +64,13 @@ func RenderChartDash(coin string, dateRange string, color string, lineChartHeigh
 		dateType = "d"
 	}
 
-	coinInfo, err := coinApi.GetCoinData(coin)
+	coinInfo, err := cmc.GetCoinData(coin)
 
 	if err != nil {
 		return err
 	}
 
-	graphData, err := coinApi.GetCoinGraphData(coin, start, end)
+	graphData, err := cmc.GetCoinGraphData(coin, start, end)
 
 	if err != nil {
 		return err
@@ -290,10 +263,11 @@ func RenderChartDash(coin string, dateRange string, color string, lineChartHeigh
 	return nil
 }
 
+// RenderGlobalMarketDash renders global market dash
 func RenderGlobalMarketDash(color string) error {
 	primaryColor := getColor(color)
 
-	marketData, err := coinApi.GetMarketData()
+	marketData, err := cmc.GetMarketData()
 
 	if err != nil {
 		return err
@@ -377,12 +351,13 @@ func RenderGlobalMarketDash(color string) error {
 	return nil
 }
 
-func RenderTable(color string, limit uint) error {
+// renderTableV1 renders old table
+func renderTableV1(color string, limit uint) error {
 	primaryColor := getColor(color)
 
 	headers := []string{"#", "Name", "Symbol", "Market Cap", "Price (USD)", "Circulating Supply", "Total Supply", "Volume (24H)", "% Change (1H)", "% Change (24H)", "% Change (7D)", "Last Updated"}
 
-	data, _ := coinApi.GetAllCoinData(int(limit))
+	data, _ := cmc.GetAllCoinData(int(limit))
 
 	rows := (func() [][]string {
 		ps := make([][]string, len(data)+1)
@@ -447,6 +422,40 @@ func RenderTable(color string, limit uint) error {
 	return nil
 }
 
+// RenderTable renders table
+func RenderTable(color string, limit uint) error {
+	t := table.New(&table.Options{
+		Color: color,
+		Limit: limit,
+	})
+	return t.Render()
+}
+
+// GetColor gets primary color
+func getColor(color string) ui.Attribute {
+	if color == "" {
+		color = "green"
+	}
+
+	primaryColor := ui.ColorGreen
+
+	if color == "green" {
+		primaryColor = ui.ColorGreen
+	} else if color == "cyan" || color == "blue" {
+		primaryColor = ui.ColorCyan
+	} else if color == "magenta" || color == "pink" || color == "purple" {
+		primaryColor = ui.ColorMagenta
+	} else if color == "white" {
+		primaryColor = ui.ColorWhite
+	} else if color == "red" {
+		primaryColor = ui.ColorRed
+	} else if color == "yellow" || color == "orange" {
+		primaryColor = ui.ColorYellow
+	}
+
+	return primaryColor
+}
+
 func main() {
 	var coin = flag.String("coin", "bitcoin", "Cryptocurrency name. ie. bitcoin | ethereum | litecoin | etc...")
 	var dateRange = flag.String("date", "7d", "Chart date range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y")
@@ -488,8 +497,13 @@ func main() {
 		ui.StopLoop()
 	})
 
+	// quit on q
+	ui.Handle("/sys/kbd/q", func(ui.Event) {
+		ui.StopLoop()
+	})
+
 	// refresh every minute
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(1 * time.Minute)
 
 	// routine
 	go func() {

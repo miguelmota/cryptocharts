@@ -1,4 +1,4 @@
-package main
+package table
 
 // Link against ncurses with wide character support in case goncurses doesn't
 
