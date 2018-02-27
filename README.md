@@ -9,7 +9,7 @@
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
-  - [Charts](#charts)
+  - [Charts](#chart)
   - [Table](#table)
 - [FAQ](#faq)
 - [License](#license)
@@ -99,7 +99,7 @@ Table commands:
 - `<F12>` to sort by *Last Updated*.
 - `<q>` to exit.
 
-# FAQ
+## FAQ
 
 - Q: Where is the data from?
 
