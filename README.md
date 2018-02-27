@@ -74,7 +74,7 @@ $ cryptodash -table -limit 100 -color green
 Table commands:
 
 - `<up>`/`<down>` arrows to navigate.
-- `<Enter>`/`<Spacebar>` to visit highlighted coin on CoinMarketCap.
+- `<Enter>`/`<Space>` to visit highlighted coin on CoinMarketCap.
 - `<F1>` to sort by *Rank*.
 - `<F2>` to sort by *Name*.
 - `<F3>` to sort by *Symbol*.
