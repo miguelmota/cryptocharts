@@ -7,7 +7,7 @@
 ## Table of Contents
 
 - [Install](#install)
-- [Usage](#ssage)
+- [Usage](#usage)
 - [Examples](#examples)
   - [Charts](#charts)
   - [Table](#table)
