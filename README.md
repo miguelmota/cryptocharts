@@ -4,7 +4,7 @@
 
 <img src="./assets/screenshot_chart.png" width="750">
 
-# Install
+## Install
 
 Make sure to have [golang](https://golang.org/) installed, then do:
 
@@ -12,7 +12,7 @@ Make sure to have [golang](https://golang.org/) installed, then do:
 go get -u github.com/miguelmota/cryptodash/cryptodash
 ```
 
-# Usage
+## Usage
 
 ```text
 $ cryptodash -help
@@ -90,6 +90,6 @@ $ cryptodash -table -limit 100 -color green
   - A: Use a window multiplexer, such as [tmux](https://tmux.github.io/) or [screen](https://www.gnu.org/software/screen/).
 
 
-# License
+## License
 
 MIT
