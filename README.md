@@ -9,7 +9,7 @@
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
-  - [Charts](#chart)
+  - [Chart](#chart)
   - [Table](#table)
 - [FAQ](#faq)
 - [License](#license)
