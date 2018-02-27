@@ -103,7 +103,7 @@ func (s *Service) Render() error {
 		gc.Update()
 		ch := s.menuwindow.GetChar()
 		switch ch {
-		case gc.KEY_RETURN, gc.KEY_ENTER:
+		case gc.KEY_RETURN, gc.KEY_ENTER, ' ':
 			s.menu.Driver(gc.REQ_TOGGLE)
 			for _, item := range s.menu.Items() {
 				if item.Value() {
