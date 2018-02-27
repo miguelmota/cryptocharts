@@ -71,6 +71,24 @@ $ cryptodash -table -limit 100 -color green
 
 <img src="./assets/screenshot_table.gif" width="900">
 
+Table commands:
+
+- `<up>`/`<down>` arrows to navigate.
+- `<q>` to exit.
+- `<Enter>` to visit highlighted coin on CoinMarketCap.
+- `<F1>` to sort by ****Rank*.
+- `<F2>` to sort by *Name*.
+- `<F3>` to sort by *Symbol*.
+- `<F4>` to sort by *Price*.
+- `<F5>` to sort by *Market Cap*.
+- `<F6>` to sort by *24 Hour Volume*.
+- `<F7>` to sort by *1 Hour Change*.
+- `<F8>` to sort by *24 Hour Change*.
+- `<F9>` to sort by *7 Day Change*.
+- `<F10>` to sort by *Total Supply*.
+- `<F11>` to sort by *Available Supply*.
+- `<F12>` to sort by *Last Updated*.
+
 # FAQ
 
 - Q: Where is the data from?
