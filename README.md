@@ -6,13 +6,13 @@
 
 ## Table of Contents
 
-- [Install](#Install)
-- [Usage](#Usage)
-- [Examples](#Examples)
-  - [Charts](#Charts)
-  - [Table](#Table)
-- [FAQ](#FAQ)
-- [License](#License)
+- [Install](#install)
+- [Usage](#ssage)
+- [Examples](#examples)
+  - [Charts](#charts)
+  - [Table](#table)
+- [FAQ](#faq)
+- [License](#license)
 
 ## Install
 
