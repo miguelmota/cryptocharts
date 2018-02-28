@@ -37,6 +37,7 @@ type Service struct {
 	limit        uint
 	primaryColor string
 	lastLog      string
+	currentItem  int
 }
 
 // Options options struct
@@ -91,14 +92,11 @@ func (s *Service) Render() error {
 		for {
 			select {
 			case <-ticker.C:
-				s.menu.UnPost()
-				s.menu.Free()
-				s.menuwindow.Clear()
-				// must refresh menu window after deleting
-				s.menuwindow.Refresh()
+				//s.menuwindow.Clear()
+				//s.menuwindow.Refresh()
 				s.fetchData()
 				s.setMenuData()
-				s.renderMenu()
+				err := s.renderMenu()
 				if err != nil {
 					panic(err)
 				}
@@ -109,7 +107,10 @@ func (s *Service) Render() error {
 	s.sortBy = "rank"
 	s.sortDesc = false
 	s.setMenuData()
-	s.renderMenu()
+	err = s.renderMenu()
+	if err != nil {
+		panic(err)
+	}
 	defer s.menu.UnPost()
 
 	wg.Add(1)
@@ -121,11 +122,22 @@ func (s *Service) Render() error {
 
 	//stdsrc.GetChar() // required so it doesn't exit
 	//wg.Wait()
+
 	for {
 		gc.Update()
 		ch := s.menuwindow.GetChar()
-		switch ch {
-		case gc.KEY_RETURN, gc.KEY_ENTER, ' ':
+		switch {
+		case ch == gc.KEY_DOWN, ch == 'j':
+			if s.currentItem < len(s.menuItems)-1 {
+				s.currentItem = s.currentItem + 1
+				s.menu.Current(s.menuItems[s.currentItem])
+			}
+		case ch == gc.KEY_UP, ch == 'k':
+			if s.currentItem > 0 {
+				s.currentItem = s.currentItem - 1
+				s.menu.Current(s.menuItems[s.currentItem])
+			}
+		case ch == gc.KEY_RETURN, ch == gc.KEY_ENTER, ch == ' ':
 			s.menu.Driver(gc.REQ_TOGGLE)
 			for _, item := range s.menu.Items() {
 				if item.Value() {
@@ -134,31 +146,49 @@ func (s *Service) Render() error {
 				}
 			}
 			s.menu.Driver(gc.REQ_TOGGLE)
-		case gc.KEY_F1:
+		case ch == gc.KEY_F1:
 			s.handleSort("rank", false)
-		case gc.KEY_F2:
+		case ch == gc.KEY_F2:
 			s.handleSort("name", true)
-		case gc.KEY_F3:
+		case ch == gc.KEY_F3:
 			s.handleSort("symbol", false)
-		case gc.KEY_F4:
+		case ch == gc.KEY_F4:
 			s.handleSort("price", true)
-		case gc.KEY_F5:
+		case ch == gc.KEY_F5:
 			s.handleSort("marketcap", true)
-		case gc.KEY_F6:
+		case ch == gc.KEY_F6:
 			s.handleSort("24hvolume", true)
-		case gc.KEY_F7:
+		case ch == gc.KEY_F7:
 			s.handleSort("1hchange", true)
-		case gc.KEY_F8:
+		case ch == gc.KEY_F8:
 			s.handleSort("24hchange", true)
-		case gc.KEY_F9:
+		case ch == gc.KEY_F9:
 			s.handleSort("7dchange", true)
-		case gc.KEY_F10:
+		case ch == gc.KEY_F10:
 			s.handleSort("totalsupply", true)
-		case gc.KEY_F11:
+		case ch == gc.KEY_F11:
 			s.handleSort("availablesupply", true)
-		case gc.KEY_F12:
+		case ch == gc.KEY_F12:
 			s.handleSort("lastupdated", true)
-		case 'q':
+		case fmt.Sprint(ch) == "21": // ctrl-u
+			s.currentItem = s.currentItem - 10
+			if s.currentItem < 0 {
+				s.currentItem = 0
+			}
+			if s.currentItem >= len(s.menuItems) {
+				s.currentItem = len(s.menuItems) - 1
+			}
+			s.menu.Current(s.menuItems[s.currentItem])
+		case fmt.Sprint(ch) == "4": // ctrl-d
+			s.currentItem = s.currentItem + 10
+			if s.currentItem < 0 {
+				s.currentItem = 0
+			}
+			if s.currentItem >= len(s.menuItems) {
+				s.currentItem = len(s.menuItems) - 1
+			}
+			s.menu.Current(s.menuItems[s.currentItem])
+		case fmt.Sprint(ch) == "3", ch == 'q':
 			return nil
 		default:
 			//s.log(fmt.Sprint(ch))
@@ -195,7 +225,10 @@ func (s *Service) handleSort(name string, desc bool) {
 		s.sortDesc = desc
 	}
 	s.setMenuData()
-	s.renderMenu()
+	err := s.renderMenu()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *Service) setMenuData() {
@@ -402,36 +435,43 @@ func (s *Service) renderMenu() error {
 	s.menuItems = items
 	//}
 
-	//if s.menu == nil {
-	//		var err error
-	s.menu, err = gc.NewMenu(s.menuItems)
-	if err != nil {
-		return err
-	}
-	//} else {
-	//		s.menu.SetItems(s.menuItems)
-	//	}
+	isfirst := true
 
-	//if s.menuwindow == nil {
-	//var err error
-	s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
-	s.menuwindow.ScrollOk(true)
-	if err != nil {
-		return err
+	if s.menu == nil {
+		var err error
+		s.menu, err = gc.NewMenu(s.menuItems)
+		if err != nil {
+			return err
+		}
+	} else {
+		isfirst = false
+		s.menu.UnPost()
+		s.menu.SetItems(s.menuItems)
+		s.menu.Current(s.menuItems[s.currentItem])
 	}
 
-	s.menuwindow.Keypad(true)
-	s.menu.SetWindow(s.menuwindow)
-	dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
-	s.menu.SubWindow(dwin)
-	s.menu.Option(gc.O_ONEVALUE, false)
-	s.menu.Format(s.screenRows-10, 1)
-	s.menu.Mark(" * ")
-	//} else {
-	//	s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
-	//}
+	if s.menuwindow == nil {
+		var err error
+		s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
+		s.menuwindow.ScrollOk(true)
+		if err != nil {
+			return err
+		}
 
-	s.menuwindow.Clear()
+		s.menuwindow.Keypad(true)
+		s.menu.SetWindow(s.menuwindow)
+		dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
+		s.menu.SubWindow(dwin)
+		s.menu.Option(gc.O_ONEVALUE, false)
+		s.menu.Format(s.screenRows-10, 1)
+		s.menu.Mark(" * ")
+	} else {
+		s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
+	}
+
+	_ = isfirst
+
+	//s.menuwindow.Clear()
 	s.menuwindow.ColorOn(2)
 	s.menuwindow.Box(0, 0)
 	s.menuwindow.ColorOff(2)
