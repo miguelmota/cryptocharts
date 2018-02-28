@@ -2,7 +2,7 @@ all:
 	@echo 'no default'
 
 run:
-	go run main.go
+	go run cryptodash/main.go
 
 table:
-	go run main.go -table
+	go run cryptodash/main.go -table

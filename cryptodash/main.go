@@ -462,7 +462,7 @@ func main() {
 	var color = flag.String("color", "green", "Primary color. ie. green | cyan | magenta | red | yellow | white")
 	var lineChartHeight = flag.Uint("chart-height", 20, "Line chart height: .ie. 15 | 20 | 25 | 30")
 	var showTable = flag.Bool("table", false, "Show the top 50 cryptocurrencies in a table.")
-	var limit = flag.Uint("limit", 50, "Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100")
+	var limit = flag.Uint("limit", 100, "Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100")
 	var showGlobalMarketDash = flag.Bool("global", false, "Show global market data.")
 
 	flag.Parse()
@@ -476,7 +476,14 @@ func main() {
 	if *showGlobalMarketDash {
 		err = RenderGlobalMarketDash(*color)
 	} else if *showTable {
-		err = RenderTable(*color, *limit)
+		for {
+			err = RenderTable(*color, *limit)
+			if err != nil {
+				panic(err)
+			} else {
+				return
+			}
+		}
 	} else {
 		err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 	}
@@ -513,8 +520,6 @@ func main() {
 
 			if *showGlobalMarketDash {
 				err = RenderGlobalMarketDash(*color)
-			} else if *showTable {
-				err = RenderTable(*color, *limit)
 			} else {
 				err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 			}

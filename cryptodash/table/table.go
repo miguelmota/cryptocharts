@@ -36,6 +36,7 @@ type Service struct {
 	sortDesc     bool
 	limit        uint
 	primaryColor string
+	lastLog      string
 }
 
 // Options options struct
@@ -84,6 +85,27 @@ func (s *Service) Render() error {
 	if err != nil {
 		return nil
 	}
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+		for {
+			select {
+			case <-ticker.C:
+				s.menu.UnPost()
+				s.menu.Free()
+				s.menuwindow.Clear()
+				// must refresh menu window after deleting
+				s.menuwindow.Refresh()
+				s.fetchData()
+				s.setMenuData()
+				s.renderMenu()
+				if err != nil {
+					panic(err)
+				}
+			}
+		}
+	}()
+
 	s.sortBy = "rank"
 	s.sortDesc = false
 	s.setMenuData()
@@ -151,6 +173,7 @@ func (s *Service) fetchData() error {
 		return err
 	}
 
+	s.coins = []*cmc.Coin{}
 	for i := range coins {
 		coin := coins[i]
 		s.coins = append(s.coins, &coin)
@@ -317,21 +340,30 @@ func (s *Service) renderLogWindow() error {
 			return err
 		}
 	}
+
 	s.logwin.Clear()
 	s.logwin.Resize(3, s.screenCols-4)
-	s.logwin.MoveWindow(2, 30)
-	s.logwin.ColorOn(1)
+	s.logwin.MoveWindow(s.screenRows-4, 2)
+	s.logwin.ColorOn(2)
 	s.logwin.Box(0, 0)
+	s.logwin.ColorOff(2)
+	s.logwin.ColorOn(1)
+	s.logwin.MovePrint(1, 1, s.lastLog)
+	s.logwin.ColorOff(1)
 	s.logwin.Refresh()
 	return nil
 }
 
 // Log logs debug messages
 func (s *Service) log(msg string) {
+	s.lastLog = msg
 	s.logwin.Clear()
-	s.logwin.ColorOn(1)
+	s.logwin.ColorOn(2)
 	s.logwin.Box(0, 0)
+	s.logwin.ColorOff(2)
+	s.logwin.ColorOn(1)
 	s.logwin.MovePrint(1, 1, msg)
+	s.logwin.ColorOff(1)
 	s.logwin.Refresh()
 }
 
@@ -400,11 +432,16 @@ func (s *Service) renderMenu() error {
 	//}
 
 	s.menuwindow.Clear()
+	s.menuwindow.ColorOn(2)
 	s.menuwindow.Box(0, 0)
+	s.menuwindow.ColorOff(2)
 	s.menuwindow.ColorOn(1)
 	s.menuwindow.MovePrint(1, 1, s.menuHeader)
+	s.menuwindow.ColorOff(1)
+	s.menuwindow.ColorOn(2)
 	s.menuwindow.MoveAddChar(2, 0, gc.ACS_LTEE)
 	s.menuwindow.HLine(2, 1, gc.ACS_HLINE, s.screenCols-6)
+	s.menuwindow.ColorOff(2)
 	s.menu.Post()
 	s.menuwindow.Refresh()
 	return nil
