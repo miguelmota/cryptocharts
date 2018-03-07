@@ -37,6 +37,8 @@ $ cryptodash -help
         Chart date range. ie. 1h | 1d | 2d | 7d | 30d | 2w | 1m | 3m | 1y (default "7d")
   -global
         Show global market data.
+  -refresh uint
+        How often to refetch data in seconds: .ie. 30, 60 (default 60)
   -limit uint
         Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100 (default 50)
   -table
@@ -130,7 +132,7 @@ $ cryptodash -global
 
 - Q: How often is the data polled?
 
-  - A: Data gets polled once every minute.
+  - A: Data gets polled once every minute by default.
 
 - Q: How can I get multiple dashboards at once?
 

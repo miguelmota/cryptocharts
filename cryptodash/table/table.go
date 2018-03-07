@@ -44,6 +44,7 @@ type Service struct {
 	sortBy        string
 	sortDesc      bool
 	limit         uint
+	refresh       uint
 	primaryColor  string
 	lastLog       string
 	currentItem   int
@@ -51,8 +52,9 @@ type Service struct {
 
 // Options options struct
 type Options struct {
-	Color string
-	Limit uint
+	Color   string
+	Limit   uint
+	Refresh uint
 }
 
 var once sync.Once
@@ -64,6 +66,7 @@ func New(opts *Options) *Service {
 	instance = &Service{}
 	instance.primaryColor = opts.Color
 	instance.limit = opts.Limit
+	instance.refresh = opts.Refresh
 	//	})
 
 	return instance
@@ -96,7 +99,7 @@ func (s *Service) Render() error {
 	}
 
 	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(time.Duration(int64(s.refresh)) * time.Minute)
 		for {
 			select {
 			case <-ticker.C:

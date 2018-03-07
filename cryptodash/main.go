@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	slice "github.com/bradfitz/slice"
 	humanize "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
 	table "github.com/miguelmota/cryptodash/cryptodash/table"
@@ -351,82 +350,12 @@ func RenderGlobalMarketDash(color string) error {
 	return nil
 }
 
-// renderTableV1 renders old table
-func renderTableV1(color string, limit uint) error {
-	primaryColor := getColor(color)
-
-	headers := []string{"#", "Name", "Symbol", "Market Cap", "Price (USD)", "Circulating Supply", "Total Supply", "Volume (24H)", "% Change (1H)", "% Change (24H)", "% Change (7D)", "Last Updated"}
-
-	data, _ := cmc.GetAllCoinData(int(limit))
-
-	rows := (func() [][]string {
-		ps := make([][]string, len(data)+1)
-		i := 1
-		for _, coinInfo := range data {
-			unix, _ := strconv.ParseInt(coinInfo.LastUpdated, 10, 64)
-
-			ps[i] = []string{
-				humanize.Comma(int64(coinInfo.Rank)),
-				coinInfo.Name,
-				coinInfo.Symbol,
-				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.MarketCapUsd)),
-				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.PriceUsd)),
-				fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.AvailableSupply), coinInfo.Symbol),
-				fmt.Sprintf("%s %s", humanize.Commaf(coinInfo.TotalSupply), coinInfo.Symbol),
-				fmt.Sprintf("$%s", humanize.Commaf(coinInfo.Usd24hVolume)),
-				fmt.Sprintf("%.2f%%", coinInfo.PercentChange1h),
-				fmt.Sprintf("%.2f%%", coinInfo.PercentChange24h),
-				fmt.Sprintf("%.2f%%", coinInfo.PercentChange7d),
-				time.Unix(unix, 0).Format("15:04:05 Jan 02"),
-			}
-
-			i = i + 1
-		}
-		return ps
-	})()
-
-	rows[0] = headers
-
-	slice.Sort(rows[:], func(i, j int) bool {
-		a, _ := strconv.Atoi(rows[i][0])
-		b, _ := strconv.Atoi(rows[j][0])
-		return a < b
-	})
-
-	table := ui.NewTable()
-	table.Rows = rows
-	table.FgColor = primaryColor
-	table.BgColor = ui.ColorDefault
-	table.BorderFg = primaryColor
-	table.Y = 0
-	table.X = 0
-	table.Width = 100
-	table.Height = 103
-
-	ui.Render(table)
-
-	// reset
-	ui.Body.Rows = ui.Body.Rows[:0]
-
-	// add grid rows and columns
-	ui.Body.AddRows(
-		ui.NewCol(0, 0, table),
-	)
-
-	// calculate layout
-	ui.Body.Align()
-
-	// render to terminal
-	ui.Render(ui.Body)
-
-	return nil
-}
-
 // RenderTable renders table
-func RenderTable(color string, limit uint) error {
+func RenderTable(color string, limit uint, refresh uint) error {
 	t := table.New(&table.Options{
-		Color: color,
-		Limit: limit,
+		Color:   color,
+		Limit:   limit,
+		Refresh: refresh,
 	})
 	return t.Render()
 }
@@ -463,6 +392,7 @@ func main() {
 	var lineChartHeight = flag.Uint("chart-height", 20, "Line chart height: .ie. 15 | 20 | 25 | 30")
 	var showTable = flag.Bool("table", false, "Show the top 50 cryptocurrencies in a table.")
 	var limit = flag.Uint("limit", 100, "Limit number of cryptocurrencies to return for table. ie. 10 | 25 | 50 | 100")
+	var refresh = flag.Uint("refresh", 60, "How often to refetch data in seconds: .ie. 30, 60")
 	var showGlobalMarketDash = flag.Bool("global", false, "Show global market data.")
 
 	flag.Parse()
@@ -473,11 +403,16 @@ func main() {
 	}
 	defer ui.Close()
 
+	if *refresh == 0 {
+		var i uint = 60
+		refresh = &i
+	}
+
 	if *showGlobalMarketDash {
 		err = RenderGlobalMarketDash(*color)
 	} else if *showTable {
 		for {
-			err = RenderTable(*color, *limit)
+			err = RenderTable(*color, *limit, *refresh)
 			if err != nil {
 				panic(err)
 			} else {
@@ -487,7 +422,7 @@ func main() {
 	} else {
 		//err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 		for {
-			err = RenderTable(*color, *limit)
+			err = RenderTable(*color, *limit, *refresh)
 			if err != nil {
 				panic(err)
 			} else {
@@ -518,7 +453,7 @@ func main() {
 	})
 
 	// refresh every minute
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(time.Duration(int64(*refresh)) * time.Minute)
 
 	// routine
 	go func() {
