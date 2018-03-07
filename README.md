@@ -76,7 +76,7 @@ List of shortcuts:
 |`s`|sort by *[s]ymbol*|
 |`p`|sort by *[p]rice*|
 |`m`|sort by *[m]arket cap*|
-|`v`|sort by *[2]4 hour [v]olume*|
+|`v`|sort by *24 hour [v]olume*|
 |`1`|sort by *[1] hour change*|
 |`2`|sort by *[2]4 hour change*|
 |`7`|sort by *[7] day change*|
