@@ -55,9 +55,12 @@ $ cryptodash -table -limit 100 -color green
 
 <img src="./assets/screenshot_table.gif" width="900">
 
-#### Table commands:
+#### Table commands
 
-|key|action|
+List of shortcuts:
+
+
+|Key|Action|
 |----|------|
 |`<up>`|navigate up|
 |`<down>`|navigate down|
@@ -83,7 +86,7 @@ $ cryptodash -table -limit 100 -color green
 |`q`|quit|
 |`<esc>`|alias to quit|
 |`<ctrl-c>`|alias to quit|
-|`?`|alias ot help|
+|`?`|alias to help|
 
 #### Help screen
 
