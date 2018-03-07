@@ -57,25 +57,33 @@ $ cryptodash -table -limit 100 -color green
 
 #### Table commands:
 
-- `<up>` or `<k>` to navigate up.
-- `<down>` or `<j>` to navigate down.
-- `<ctrl-u>` to page up.
-- `<ctrl-d>` to page down.
-- `<enter>`/`<Space>` to visit highlighted coin on CoinMarketCap.
-- `<h>` or `<?>` to toggle Help.
-- `<r>` to sort by *Rank*.
-- `<n>` to sort by *Name*.
-- `<s>` to sort by *Symbol*.
-- `<p>` to sort by *Price*.
-- `<m>` to sort by *Market Cap*.
-- `<v>` to sort by *24 Hour Volume*.
-- `<1>` to sort by *1 Hour Change*.
-- `<2>` to sort by *24 Hour Change*.
-- `<7>` to sort by *7 Day Change*.
-- `<t>` to sort by *Total Supply*.
-- `<a>` to sort by *Available Supply*.
-- `<l>` to sort by *Last Updated*.
-- `<q>` or `<esc>` or `<ctrl-c>` to exit.
+|key|action|
+|----|------|
+|`<up>`|navigate up|
+|`<down>`|navigate down|
+|`<ctrl-u>`|page up|
+|`<ctrl-d>`|page down|
+|`<enter>`|visit highlighted coin on CoinMarketCap|
+|`<space>`|alias to `<enter>`
+|`h`|toggle help|
+|`j`|alias to `<down>`|
+|`k`|alias to `<up>`|
+|`r`|sort by *[r]ank*|
+|`n`|sort by *[n]ame*|
+|`s`|sort by *[s]ymbol*|
+|`p`|sort by *[p]rice*|
+|`m`|sort by *[m]arket cap*|
+|`v`|sort by *[2]4 hour [v]olume*|
+|`1`|sort by *[1] hour change*|
+|`2`|sort by *[2]4 hour change*|
+|`7`|sort by *[7] day change*|
+|`t`|sort by *[t]otal supply*|
+|`a`|sort by *[a]vailable supply*|
+|`l`|sort by *[l]ast updated*|
+|`q`|quit|
+|`<esc>`|alias to quit|
+|`<ctrl-c>`|alias to quit|
+|`?`|alias ot help|
 
 #### Help screen
 
