@@ -2,15 +2,15 @@
 
 > Cryptocurrency information and charts displayed in a dashboard from your terminal.
 
-<img src="./assets/screenshot_chart.png" width="750">
+<img src="./assets/screenshot_table.gif" width="900">
 
 ## Table of Contents
 
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
-  - [Chart](#chart)
   - [Table](#table)
+  - [Chart](#chart)
 - [FAQ](#faq)
 - [License](#license)
 
@@ -45,6 +45,42 @@ $ cryptodash -help
 
 ## Examples
 
+### Table
+
+Here's an example of displaying the top 100 cryptocurrencies stats in a table:
+
+```bash
+$ cryptodash -table -limit 100 -color green
+```
+
+<img src="./assets/screenshot_table.gif" width="900">
+
+#### Table commands:
+
+- `<up>` or `<k>` to navigate up.
+- `<down>` or `<j>` to navigate down.
+- `<ctrl-u>` to page up.
+- `<ctrl-d>` to page down.
+- `<enter>`/`<Space>` to visit highlighted coin on CoinMarketCap.
+- `<h>` or `<?>` to toggle Help.
+- `<r>` to sort by *Rank*.
+- `<n>` to sort by *Name*.
+- `<s>` to sort by *Symbol*.
+- `<p>` to sort by *Price*.
+- `<m>` to sort by *Market Cap*.
+- `<v>` to sort by *24 Hour Volume*.
+- `<1>` to sort by *1 Hour Change*.
+- `<2>` to sort by *24 Hour Change*.
+- `<7>` to sort by *7 Day Change*.
+- `<t>` to sort by *Total Supply*.
+- `<a>` to sort by *Available Supply*.
+- `<l>` to sort by *Last Updated*.
+- `<q>` or `<esc>` or `<ctrl-c>` to exit.
+
+#### Help screen
+
+<img src="./assets/screenshot_table_help.png" width="900">
+
 ### Chart
 
 Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
@@ -70,38 +106,6 @@ $ cryptodash -global
 ```
 
 <img src="./assets/screenshot_global_market.png" width="850">
-
-### Table
-
-Here's an example of displaying the top 100 cryptocurrencies stats in a table:
-
-```bash
-$ cryptodash -table -limit 100 -color green
-```
-
-<img src="./assets/screenshot_table.gif" width="900">
-
-Table commands:
-
-- `<up>` or `<k>` to navigate up.
-- `<down>` or `<j>` to navigate down.
-- `<ctrl-u>` to page up.
-- `<ctrl-d>` to page down.
-- `<enter>`/`<Space>` to visit highlighted coin on CoinMarketCap.
-- `<h>` or `<?>` to toggle Help.
-- `<r>` to sort by *Rank*.
-- `<n>` to sort by *Name*.
-- `<s>` to sort by *Symbol*.
-- `<p>` to sort by *Price*.
-- `<m>` to sort by *Market Cap*.
-- `<v>` to sort by *24 Hour Volume*.
-- `<1>` to sort by *1 Hour Change*.
-- `<2>` to sort by *24 Hour Change*.
-- `<7>` to sort by *7 Day Change*.
-- `<t>` to sort by *Total Supply*.
-- `<a>` to sort by *Available Supply*.
-- `<l>` to sort by *Last Updated*.
-- `<q>` or `<esc>` or `<ctrl-c>` to exit.
 
 ## FAQ
 
