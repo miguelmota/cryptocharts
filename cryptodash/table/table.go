@@ -22,22 +22,31 @@ var wg sync.WaitGroup
 
 // Service service struct
 type Service struct {
-	screenRows   int
-	screenCols   int
-	mainwin      *gc.Window
-	menuwindow   *gc.Window
-	logwin       *gc.Window
-	menu         *gc.Menu
-	menuItems    []*gc.MenuItem
-	menuData     []string
-	menuHeader   string
-	coins        []*cmc.Coin
-	sortBy       string
-	sortDesc     bool
-	limit        uint
-	primaryColor string
-	lastLog      string
-	currentItem  int
+	stdsrc        *gc.Window
+	screenRows    int
+	screenCols    int
+	mainwin       *gc.Window
+	menuwin       *gc.Window
+	menuwinWidth  int
+	menuwinHeight int
+	menusubwin    *gc.Window
+	helpbarwin    *gc.Window
+	helpwin       *gc.Window
+	helpVisible   bool
+	logwin        *gc.Window
+	menu          *gc.Menu
+	menuItems     []*gc.MenuItem
+	menuData      []string
+	menuHeader    string
+	menuWidth     int
+	menuHeight    int
+	coins         []*cmc.Coin
+	sortBy        string
+	sortDesc      bool
+	limit         uint
+	primaryColor  string
+	lastLog       string
+	currentItem   int
 }
 
 // Options options struct
@@ -62,26 +71,25 @@ func New(opts *Options) *Service {
 
 // Render starts GUI
 func (s *Service) Render() error {
-	stdsrc, err := gc.Init()
+	var err error
+	s.stdsrc, err = gc.Init()
 	defer gc.End()
 	if err != nil {
 		return err
 	}
+	gc.UseDefaultColors()
 	gc.StartColor()
 	s.setColorPairs()
 	gc.Raw(true)
 	gc.Echo(false)
 	gc.Cursor(0)
-	stdsrc.Keypad(true)
+	s.stdsrc.Keypad(true)
 	cols, rows := GetScreenSize()
 	s.screenRows = rows
 	s.screenCols = cols
+	s.helpVisible = false
 
 	s.renderMainWindow()
-	_ = gc.NewPanel(s.mainwin)
-	gc.UpdatePanels()
-	gc.Update()
-
 	err = s.fetchData()
 	if err != nil {
 		return nil
@@ -92,8 +100,8 @@ func (s *Service) Render() error {
 		for {
 			select {
 			case <-ticker.C:
-				//s.menuwindow.Clear()
-				//s.menuwindow.Refresh()
+				//s.menuwin.Clear()
+				//s.menuwin.Refresh()
 				s.fetchData()
 				s.setMenuData()
 				err := s.renderMenu()
@@ -118,26 +126,29 @@ func (s *Service) Render() error {
 	signal.Notify(resizeChannel, syscall.SIGWINCH)
 	go s.onWindowResize(resizeChannel)
 	s.renderLogWindow()
-	s.log("Use <up/down> arrows to navigate. <q> to exit. <F> keys to sort. <Enter> to visit coin on CoinMarketCap.")
+	s.renderHelpBar()
+	s.renderHelpWindow()
 
 	//stdsrc.GetChar() // required so it doesn't exit
 	//wg.Wait()
 
 	for {
 		gc.Update()
-		ch := s.menuwindow.GetChar()
+		ch := s.menuwin.GetChar()
+		chstr := fmt.Sprint(ch)
+		//s.log(fmt.Sprint(ch))
 		switch {
-		case ch == gc.KEY_DOWN, ch == 'j':
+		case ch == gc.KEY_DOWN, chstr == "106": // "j"
 			if s.currentItem < len(s.menuItems)-1 {
 				s.currentItem = s.currentItem + 1
 				s.menu.Current(s.menuItems[s.currentItem])
 			}
-		case ch == gc.KEY_UP, ch == 'k':
+		case ch == gc.KEY_UP, chstr == "107": // "k"
 			if s.currentItem > 0 {
 				s.currentItem = s.currentItem - 1
 				s.menu.Current(s.menuItems[s.currentItem])
 			}
-		case ch == gc.KEY_RETURN, ch == gc.KEY_ENTER, ch == ' ':
+		case ch == gc.KEY_RETURN, ch == gc.KEY_ENTER, chstr == "32":
 			s.menu.Driver(gc.REQ_TOGGLE)
 			for _, item := range s.menu.Items() {
 				if item.Value() {
@@ -146,52 +157,60 @@ func (s *Service) Render() error {
 				}
 			}
 			s.menu.Driver(gc.REQ_TOGGLE)
-		case ch == gc.KEY_F1:
+		case chstr == "114": // "r"
 			s.handleSort("rank", false)
-		case ch == gc.KEY_F2:
+		case chstr == "110": // "n"
 			s.handleSort("name", true)
-		case ch == gc.KEY_F3:
+		case chstr == "115": // "s"
 			s.handleSort("symbol", false)
-		case ch == gc.KEY_F4:
+		case chstr == "112": // "p
 			s.handleSort("price", true)
-		case ch == gc.KEY_F5:
+		case chstr == "109": // "m
 			s.handleSort("marketcap", true)
-		case ch == gc.KEY_F6:
+		case chstr == "118": // "v
 			s.handleSort("24hvolume", true)
-		case ch == gc.KEY_F7:
+		case chstr == "49": // "1"
 			s.handleSort("1hchange", true)
-		case ch == gc.KEY_F8:
+		case chstr == "50": // "2"
 			s.handleSort("24hchange", true)
-		case ch == gc.KEY_F9:
+		case chstr == "55": // "7"
 			s.handleSort("7dchange", true)
-		case ch == gc.KEY_F10:
+		case chstr == "116": // "t"
 			s.handleSort("totalsupply", true)
-		case ch == gc.KEY_F11:
+		case chstr == "97": // "a"
 			s.handleSort("availablesupply", true)
-		case ch == gc.KEY_F12:
+		case chstr == "108": // "l"
 			s.handleSort("lastupdated", true)
-		case fmt.Sprint(ch) == "21": // ctrl-u
-			s.currentItem = s.currentItem - 10
+		case chstr == "21": // ctrl-u
+			s.currentItem = s.currentItem - s.menuHeight
 			if s.currentItem < 0 {
 				s.currentItem = 0
 			}
 			if s.currentItem >= len(s.menuItems) {
 				s.currentItem = len(s.menuItems) - 1
 			}
+			//s.log(fmt.Sprintf("%v %v", s.currentItem, s.screenRows))
 			s.menu.Current(s.menuItems[s.currentItem])
 		case fmt.Sprint(ch) == "4": // ctrl-d
-			s.currentItem = s.currentItem + 10
+			s.currentItem = s.currentItem + s.menuHeight
 			if s.currentItem < 0 {
 				s.currentItem = 0
 			}
 			if s.currentItem >= len(s.menuItems) {
 				s.currentItem = len(s.menuItems) - 1
 			}
+			//s.log(fmt.Sprintf("%v %v", s.currentItem, s.screenRows))
 			s.menu.Current(s.menuItems[s.currentItem])
-		case fmt.Sprint(ch) == "3", ch == 'q':
-			return nil
+		case chstr == "104", chstr == "63": // "h", "?"
+			s.toggleHelp()
+		case chstr == "3", chstr == "113", chstr == "27": // ctrl-c, "q", esc
+			if s.helpVisible && chstr == "27" {
+				s.toggleHelp()
+			} else {
+				// quit
+				return nil
+			}
 		default:
-			//s.log(fmt.Sprint(ch))
 			s.menu.Driver(gc.DriverActions[ch])
 		}
 	}
@@ -295,20 +314,20 @@ func (s *Service) setMenuData() {
 	s.menuData = menuData
 
 	headers := []string{
-		pad.Right("Rank", 6, " "),
-		pad.Right("Name", 20, " "),
-		pad.Right("Symbol", 10, " "),
-		pad.Right("Price", 10, " "),
-		pad.Right("Market Cap", 17, " "),
-		pad.Right("24 Volume", 16, " "),
-		pad.Right("1H%", 9, " "),
-		pad.Right("24H%", 9, " "),
-		pad.Right("7D%", 8, " "),
-		pad.Right("Total Supply", 20, " "),
-		pad.Right("Available Supply", 19, " "),
-		pad.Right("Last Updated", 16, " "),
+		pad.Right("[r]ank", 13, " "),
+		pad.Right("[n]ame", 13, " "),
+		pad.Right("[s]ymbol", 8, " "),
+		pad.Left("[p]rice", 10, " "),
+		pad.Left("[m]arket cap", 17, " "),
+		pad.Left("24H [v]olume", 15, " "),
+		pad.Left("[1]H%", 9, " "),
+		pad.Left("[2]4H%", 9, " "),
+		pad.Left("[7]D%", 9, " "),
+		pad.Left("[t]otal supply", 20, " "),
+		pad.Left("[a]vailable supply", 19, " "),
+		pad.Left("[l]ast updated", 17, " "),
 	}
-	header := "   "
+	header := ""
 	for _, h := range headers {
 		header = fmt.Sprintf("%s%s", header, h)
 	}
@@ -338,6 +357,8 @@ func (s *Service) setColorPairs() {
 	gc.InitPair(2, gc.C_BLACK, gc.C_BLACK)
 	gc.InitPair(3, gc.C_BLACK, gc.C_GREEN)
 	gc.InitPair(4, gc.C_BLACK, gc.C_CYAN)
+	gc.InitPair(5, gc.C_WHITE, gc.C_BLUE)
+	gc.InitPair(6, gc.C_BLACK, -1)
 }
 
 // RenderMainWindow renders main window
@@ -351,6 +372,7 @@ func (s *Service) renderMainWindow() error {
 	}
 	s.mainwin.Clear()
 	s.mainwin.ColorOn(2)
+	s.mainwin.MoveWindow(0, 0)
 	s.mainwin.Resize(s.screenRows, s.screenCols)
 	s.mainwin.Box(0, 0)
 	s.mainwin.Refresh()
@@ -359,29 +381,54 @@ func (s *Service) renderMainWindow() error {
 
 // ResizeWindows resizes windows
 func (s *Service) resizeWindows() {
+	gc.ResizeTerm(s.screenRows, s.screenCols)
+	//s.log(fmt.Sprintf("%v %v", s.screenCols, s.screenRows))
 	s.renderMainWindow()
 	s.renderMenu()
+	s.renderHelpBar()
 	s.renderLogWindow()
-	//s.log(fmt.Sprintf("%v %v %v", time.Now().Unix(), s.screenCols, s.screenRows))
+	s.renderHelpWindow()
+}
+
+func (s *Service) renderHelpBar() error {
+	var err error
+	if s.helpbarwin == nil {
+		s.helpbarwin, err = gc.NewWindow(1, s.screenCols, s.screenRows-1, 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	s.helpbarwin.Clear()
+	s.helpbarwin.Resize(1, s.screenCols)
+	s.helpbarwin.MoveWindow(s.screenRows-1, 0)
+	s.helpbarwin.ColorOn(2)
+	s.helpbarwin.Box(0, 0)
+	s.helpbarwin.ColorOff(2)
+	s.helpbarwin.ColorOn(1)
+	s.helpbarwin.MovePrint(0, 0, "[q]uit [h]elp")
+	s.helpbarwin.ColorOff(1)
+	s.helpbarwin.Refresh()
+	return nil
 }
 
 func (s *Service) renderLogWindow() error {
 	var err error
 	if s.logwin == nil {
-		s.logwin, err = gc.NewWindow(3, s.screenCols-4, s.screenRows-4, 2)
+		s.logwin, err = gc.NewWindow(1, 20, s.screenRows-1, s.screenCols-20)
 		if err != nil {
 			return err
 		}
 	}
 
 	s.logwin.Clear()
-	s.logwin.Resize(3, s.screenCols-4)
-	s.logwin.MoveWindow(s.screenRows-4, 2)
+	s.logwin.Resize(1, 20)
+	s.logwin.MoveWindow(s.screenRows-1, s.screenCols-20)
 	s.logwin.ColorOn(2)
 	s.logwin.Box(0, 0)
 	s.logwin.ColorOff(2)
 	s.logwin.ColorOn(1)
-	s.logwin.MovePrint(1, 1, s.lastLog)
+	s.logwin.MovePrint(0, 0, s.lastLog)
 	s.logwin.ColorOff(1)
 	s.logwin.Refresh()
 	return nil
@@ -395,20 +442,78 @@ func (s *Service) log(msg string) {
 	s.logwin.Box(0, 0)
 	s.logwin.ColorOff(2)
 	s.logwin.ColorOn(1)
-	s.logwin.MovePrint(1, 1, msg)
+	s.logwin.MovePrint(0, 0, msg)
 	s.logwin.ColorOff(1)
 	s.logwin.Refresh()
 }
 
+func (s *Service) toggleHelp() {
+	s.helpVisible = !s.helpVisible
+	s.renderHelpWindow()
+}
+
+func (s *Service) renderHelpWindow() error {
+	if !s.helpVisible {
+		if s.helpwin != nil {
+			s.helpwin.ClearOk(true)
+			s.helpwin.Clear()
+			s.helpwin.SetBackground(gc.ColorPair(6))
+			s.helpwin.ColorOn(6)
+			s.helpwin.Resize(0, 0)
+			s.helpwin.MoveWindow(200, 200)
+			s.helpwin.Refresh()
+			s.renderMenu()
+		}
+		return nil
+	}
+
+	var err error
+	if s.helpwin == nil {
+		s.helpwin, err = gc.NewWindow(21, 40, (s.screenRows/2)-11, (s.screenCols/2)-20)
+		if err != nil {
+			return err
+		}
+	}
+
+	s.helpwin.Clear()
+	s.helpwin.SetBackground(gc.ColorPair(1))
+	s.helpwin.ColorOn(1)
+	s.helpwin.Resize(21, 40)
+	s.helpwin.MoveWindow((s.screenRows/2)-11, (s.screenCols/2)-20)
+	s.helpwin.Box(0, 0)
+	s.helpwin.MovePrint(0, 1, "Help")
+	s.helpwin.MovePrint(1, 1, "<up> or <k> to navigate up")
+	s.helpwin.MovePrint(2, 1, "<down> or <j> to navigate down")
+	s.helpwin.MovePrint(3, 1, "<ctrl-u> to to page up")
+	s.helpwin.MovePrint(4, 1, "<ctrl-d> to to page down")
+	s.helpwin.MovePrint(5, 1, "<enter> or <space> to open coin link")
+	s.helpwin.MovePrint(6, 1, "<1> to sort by 1 hour change")
+	s.helpwin.MovePrint(7, 1, "<2> to sort by 24 hour volume")
+	s.helpwin.MovePrint(8, 1, "<7> to sort by 7 day change")
+	s.helpwin.MovePrint(9, 1, "<a> to sort by available supply")
+	s.helpwin.MovePrint(10, 1, "<h> or <?> to toggle help")
+	s.helpwin.MovePrint(11, 1, "<l> to sort by last updated")
+	s.helpwin.MovePrint(12, 1, "<m> to sort by market cap")
+	s.helpwin.MovePrint(13, 1, "<n> to sort by name")
+	s.helpwin.MovePrint(14, 1, "<r> to sort by rank")
+	s.helpwin.MovePrint(15, 1, "<s> to sort by symbol")
+	s.helpwin.MovePrint(16, 1, "<t> to sort by total supply")
+	s.helpwin.MovePrint(17, 1, "<p> to sort by price")
+	s.helpwin.MovePrint(18, 1, "<v> to sort by 24 hour volume")
+	s.helpwin.MovePrint(19, 1, "<q> or <esc> to quit application.")
+	s.helpwin.Refresh()
+	return nil
+}
+
 // OnWindowResize sends event to channel when resize event occurs
 func (s *Service) onWindowResize(channel chan os.Signal) {
-	stdScr, _ := gc.Init()
-	stdScr.ScrollOk(true)
-	gc.NewLines(true)
+	//stdScr, _ := gc.Init()
+	//stdScr.ScrollOk(true)
+	//gc.NewLines(true)
 	for {
 		<-channel
 		//gc.StdScr().Clear()
-		//y, x := gc.StdScr().MaxYX()
+		//rows, cols := gc.StdScr().MaxYX()
 		cols, rows := GetScreenSize()
 		s.screenRows = rows
 		s.screenCols = cols
@@ -421,6 +526,11 @@ func (s *Service) onWindowResize(channel chan os.Signal) {
 
 // RenderMenu renders menu
 func (s *Service) renderMenu() error {
+	s.menuwinWidth = s.screenCols
+	s.menuwinHeight = s.screenRows - 1
+	s.menuWidth = s.screenCols
+	s.menuHeight = s.screenRows - 2
+
 	//if len(s.menuItems) == 0 {
 	items := make([]*gc.MenuItem, len(s.menuData))
 	var err error
@@ -435,8 +545,6 @@ func (s *Service) renderMenu() error {
 	s.menuItems = items
 	//}
 
-	isfirst := true
-
 	if s.menu == nil {
 		var err error
 		s.menu, err = gc.NewMenu(s.menuItems)
@@ -444,45 +552,43 @@ func (s *Service) renderMenu() error {
 			return err
 		}
 	} else {
-		isfirst = false
 		s.menu.UnPost()
 		s.menu.SetItems(s.menuItems)
 		s.menu.Current(s.menuItems[s.currentItem])
 	}
 
-	if s.menuwindow == nil {
+	if s.menuwin == nil {
 		var err error
-		s.menuwindow, err = gc.NewWindow(s.screenRows-6, s.screenCols-4, 2, 2)
-		s.menuwindow.ScrollOk(true)
+		s.menuwin, err = gc.NewWindow(s.menuwinHeight, s.menuwinWidth, 0, 0)
+		s.menuwin.ScrollOk(true)
 		if err != nil {
 			return err
 		}
 
-		s.menuwindow.Keypad(true)
-		s.menu.SetWindow(s.menuwindow)
-		dwin := s.menuwindow.Derived(s.screenRows-10, s.screenCols-10, 3, 1)
-		s.menu.SubWindow(dwin)
+		s.menuwin.Keypad(true)
+		s.menu.SetWindow(s.menuwin)
+		s.menusubwin = s.menuwin.Derived(s.menuHeight, s.menuWidth, 1, 0)
+		s.menu.SubWindow(s.menusubwin)
 		s.menu.Option(gc.O_ONEVALUE, false)
-		s.menu.Format(s.screenRows-10, 1)
-		s.menu.Mark(" * ")
+		s.menu.Format(s.menuHeight, 0)
+		s.menu.Mark("")
 	} else {
-		s.menuwindow.Resize(s.screenRows-6, s.screenCols-4)
+		s.menusubwin.Resize(s.menuHeight, s.menuWidth)
+		s.menuwin.Resize(s.menuHeight, s.menuWidth)
 	}
 
-	_ = isfirst
-
-	//s.menuwindow.Clear()
-	s.menuwindow.ColorOn(2)
-	s.menuwindow.Box(0, 0)
-	s.menuwindow.ColorOff(2)
-	s.menuwindow.ColorOn(1)
-	s.menuwindow.MovePrint(1, 1, s.menuHeader)
-	s.menuwindow.ColorOff(1)
-	s.menuwindow.ColorOn(2)
-	s.menuwindow.MoveAddChar(2, 0, gc.ACS_LTEE)
-	s.menuwindow.HLine(2, 1, gc.ACS_HLINE, s.screenCols-6)
-	s.menuwindow.ColorOff(2)
+	//s.menuwin.Clear()
+	s.menuwin.ColorOn(2)
+	s.menuwin.Box(0, 0)
+	s.menuwin.ColorOff(2)
+	s.menuwin.ColorOn(1)
+	s.menuwin.MovePrint(0, 0, s.menuHeader)
+	s.menuwin.ColorOff(1)
+	s.menuwin.ColorOn(2)
+	s.menuwin.MoveAddChar(2, 0, gc.ACS_LTEE)
+	//s.menuwin.HLine(2, 1, gc.ACS_HLINE, s.screenCols-6)
+	s.menuwin.ColorOff(2)
 	s.menu.Post()
-	s.menuwindow.Refresh()
+	s.menuwin.Refresh()
 	return nil
 }
