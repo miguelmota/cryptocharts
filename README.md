@@ -68,7 +68,7 @@ List of shortcuts:
 |`<ctrl-d>`|page down|
 |`<enter>`|visit highlighted coin on CoinMarketCap|
 |`<space>`|alias to `<enter>`
-|`h`|toggle help|
+|`h`|toggle [h]elp|
 |`j`|alias to `<down>`|
 |`k`|alias to `<up>`|
 |`r`|sort by *[r]ank*|
@@ -83,7 +83,7 @@ List of shortcuts:
 |`t`|sort by *[t]otal supply*|
 |`a`|sort by *[a]vailable supply*|
 |`l`|sort by *[l]ast updated*|
-|`q`|quit|
+|`q`|[q]uit|
 |`<esc>`|alias to quit|
 |`<ctrl-c>`|alias to quit|
 |`?`|alias to help|
