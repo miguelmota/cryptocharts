@@ -485,7 +485,15 @@ func main() {
 			}
 		}
 	} else {
-		err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
+		//err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
+		for {
+			err = RenderTable(*color, *limit)
+			if err != nil {
+				panic(err)
+			} else {
+				return
+			}
+		}
 	}
 
 	if err != nil {
