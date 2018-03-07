@@ -1,6 +1,6 @@
-# cryptodash
+# cryptodash: track cryptocurrencies the hacker way.
 
-> Cryptocurrency information and charts displayed in a dashboard from your terminal.
+> Cryptocurrency stats and charts displayed in a dashboard from your terminal.
 
 <img src="./assets/screenshot_table.gif" width="900">
 
