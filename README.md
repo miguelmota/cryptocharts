@@ -22,6 +22,22 @@ Make sure to have [golang](https://golang.org/) installed, then do:
 go get -u github.com/miguelmota/cryptodash/cryptodash
 ```
 
+### Dependencies
+
+- ncurses library
+
+#### Debian/Ubuntu
+
+```bash
+sudo apt-get install libncursesw5-dev
+```
+
+#### RedHat/Fedora/CentOS
+
+```bash
+sudo yum install ncurses-devel
+```
+
 ## Usage
 
 ```text
@@ -138,6 +154,17 @@ $ cryptodash -global
 
   - A: Use a window multiplexer, such as [tmux](https://tmux.github.io/) or [screen](https://www.gnu.org/software/screen/).
 
+- Q: I get install errors regarding `ncurses`.
+
+  - A: Make sure to have installed the required libraries, discussed in the [Install](#install) section.
+
+- Q: I installed cryptodash without errors but the command is not found.
+
+  - A: Make sure your `GOPATH` and `PATH` is set correctly.
+    ```bash
+    export GOPATH=$HOME/go
+    export PATH=$PATH:$GOPATH/bin
+    ```
 
 ## License
 
