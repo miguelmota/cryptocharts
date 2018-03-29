@@ -19,7 +19,7 @@
 Make sure to have [golang](https://golang.org/) installed, then do:
 
 ```bash
-go get -u github.com/miguelmota/cryptocharts/cryptocharts
+go get -u github.com/miguelmota/cryptocharts
 ```
 
 ### Dependencies
