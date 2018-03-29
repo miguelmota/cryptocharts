@@ -23,8 +23,8 @@ _testmain.go
 *.test
 *.prof
 
-cryptodash/main
-!cryptodash/main.go
+cryptocharts/cryptocharts
+!cryptocharts/cryptocharts.go
 
 temp/
 

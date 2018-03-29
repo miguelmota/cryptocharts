@@ -1,8 +1,8 @@
 all:
 	@echo 'no default'
 
-run:
-	go run cryptodash/main.go
+chart:
+	go run cryptocharts/cryptocharts.go -coin ethereum
 
 table:
-	go run cryptodash/main.go -table
+	go run cryptocharts/cryptocharts.go -table

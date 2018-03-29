@@ -135,6 +135,23 @@ func (s *Service) Render() error {
 	//stdsrc.GetChar() // required so it doesn't exit
 	//wg.Wait()
 
+	fields := make([]*gc.Field, 2)
+	fields[0], _ = gc.NewField(1, 10, 4, 18, 0, 0)
+	defer fields[0].Free()
+	fields[0].SetForeground(gc.ColorPair(1))
+	fields[0].SetBackground(gc.ColorPair(2) | gc.A_UNDERLINE | gc.A_BOLD)
+	fields[0].SetOptionsOff(gc.FO_AUTOSKIP)
+
+	fields[1], _ = gc.NewField(1, 10, 6, 18, 0, 0)
+	defer fields[1].Free()
+	fields[1].SetForeground(gc.ColorPair(1))
+	fields[1].SetBackground(gc.A_UNDERLINE)
+	fields[1].SetOptionsOff(gc.FO_AUTOSKIP)
+	fields[1].SetPad('*')
+	form, _ := gc.NewForm(fields)
+	form.Post()
+	form.Driver(gc.REQ_FIRST_FIELD)
+
 	for {
 		gc.Update()
 		ch := s.menuwin.GetChar()
@@ -146,6 +163,10 @@ func (s *Service) Render() error {
 				s.currentItem = s.currentItem + 1
 				s.menu.Current(s.menuItems[s.currentItem])
 			}
+
+			form.Driver(gc.REQ_NEXT_FIELD)
+			form.Driver(gc.REQ_END_LINE)
+
 		case ch == gc.KEY_UP, chstr == "107": // "k"
 			if s.currentItem > 0 {
 				s.currentItem = s.currentItem - 1
@@ -478,10 +499,11 @@ func (s *Service) renderHelpWindow() error {
 		}
 	}
 
+	s.helpwin.Keypad(true)
 	s.helpwin.Clear()
 	s.helpwin.SetBackground(gc.ColorPair(1))
 	s.helpwin.ColorOn(1)
-	s.helpwin.Resize(21, 40)
+	s.helpwin.Resize(11, 40)
 	s.helpwin.MoveWindow((s.screenRows/2)-11, (s.screenCols/2)-20)
 	s.helpwin.Box(0, 0)
 	s.helpwin.MovePrint(0, 1, "Help")

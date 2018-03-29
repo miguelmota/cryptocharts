@@ -1,16 +1,16 @@
-### cryptodash: track cryptocurrencies the hacker way.
+# cryptocharts
 
-> Cryptocurrency stats and charts displayed in a dashboard from your terminal.
+> Cryptocurrency stats and charts displayed in your terminal.
 
-<img src="./assets/screenshot_table.gif" width="900">
+<img src="./assets/screenshot_chart.png" width="750">
 
 ## Table of Contents
 
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
-  - [Table](#table)
   - [Chart](#chart)
+  - [Table](#table)
 - [FAQ](#faq)
 - [License](#license)
 
@@ -19,7 +19,7 @@
 Make sure to have [golang](https://golang.org/) installed, then do:
 
 ```bash
-go get -u github.com/miguelmota/cryptodash/cryptodash
+go get -u github.com/miguelmota/cryptocharts/cryptocharts
 ```
 
 ### Dependencies
@@ -41,7 +41,7 @@ sudo yum install ncurses-devel
 ## Usage
 
 ```text
-$ cryptodash -help
+$ cryptocharts -help
 
   -chart-height uint
         Line chart height: .ie. 15 | 20 | 25 | 30 (default 20)
@@ -63,12 +63,38 @@ $ cryptodash -help
 
 ## Examples
 
+### Chart
+
+Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
+
+```bash
+$ cryptocharts -coin ethereum -date 30d
+```
+
+<img src="./assets/screenshot_chart.png" width="750">
+
+Here's an example of how you can set the primary color for the dashboard:
+
+```bash
+$ cryptocharts -coin bitcoin -date 1d -color white
+```
+
+<img src="./assets/screenshot_chart_white.png" width="750">
+
+Here's an example of displaying global market data only:
+
+```bash
+$ cryptocharts -global
+```
+
+<img src="./assets/screenshot_global_market.png" width="850">
+
 ### Table
 
 Here's an example of displaying the top 100 cryptocurrencies stats in a table:
 
 ```bash
-$ cryptodash -table -limit 100 -color green
+$ cryptocharts -table -limit 100 -color green
 ```
 
 <img src="./assets/screenshot_table.gif" width="900">
@@ -110,32 +136,6 @@ List of shortcuts:
 
 <img src="./assets/screenshot_table_help.png" width="900">
 
-### Chart
-
-Here's an example of getting latest [Ethereum](https://www.ethereum.org/) stats, and chart data for the last 30 days:
-
-```bash
-$ cryptodash -coin ethereum -date 30d
-```
-
-<img src="./assets/screenshot_chart.png" width="750">
-
-Here's an example of how you can set the primary color for the dashboard:
-
-```bash
-$ cryptodash -coin bitcoin -date 1d -color white
-```
-
-<img src="./assets/screenshot_chart_white.png" width="750">
-
-Here's an example of displaying global market data only:
-
-```bash
-$ cryptodash -global
-```
-
-<img src="./assets/screenshot_global_market.png" width="850">
-
 ## FAQ
 
 - Q: Where is the data from?
@@ -158,7 +158,7 @@ $ cryptodash -global
 
   - A: Make sure to have installed the required libraries, discussed in the [Install](#install) section.
 
-- Q: I installed cryptodash without errors but the command is not found.
+- Q: I installed cryptocharts without errors but the command is not found.
 
   - A: Make sure your `GOPATH` and `PATH` is set correctly.
     ```bash

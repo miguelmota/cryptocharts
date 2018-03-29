@@ -9,7 +9,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	ui "github.com/gizak/termui"
-	table "github.com/miguelmota/cryptodash/cryptodash/table"
+	table "github.com/miguelmota/cryptocharts/cryptocharts/table"
 	cmc "github.com/miguelmota/go-coinmarketcap"
 )
 
@@ -420,15 +420,7 @@ func main() {
 			}
 		}
 	} else {
-		//err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
-		for {
-			err = RenderTable(*color, *limit, *refresh)
-			if err != nil {
-				panic(err)
-			} else {
-				return
-			}
-		}
+		err = RenderChartDash(*coin, *dateRange, *color, *lineChartHeight)
 	}
 
 	if err != nil {
